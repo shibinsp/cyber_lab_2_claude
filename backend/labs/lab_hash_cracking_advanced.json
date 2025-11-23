@@ -1,0 +1,50 @@
+{
+  "id": "lab_hash_cracking_advanced",
+  "title": "Advanced Hash Cracking",
+  "description": "Master advanced hash cracking techniques including rule-based attacks and mask attacks.",
+  "difficulty": "Advanced",
+  "duration": "35 min",
+  "category": "Cryptography",
+  "semester_level": 3,
+  "scenario": "You've obtained a list of password hashes from a compromised database. Crack them using advanced techniques.",
+  "environment": "terminal",
+  "tasks": [
+    {
+      "step": 1,
+      "title": "Identify Hash Types",
+      "instruction": "Analyze the hash file to identify the different hash types present.",
+      "hint": "Use hashid or hash-identifier",
+      "expected_command": "hashid -m hashes.txt",
+      "output": "Analyzing 'e99a18c428cb38d5f260853678922e03'\n[+] MD5 [Hashcat Mode: 0]\n\nAnalyzing '$2a$10$N9qo8uLOickgx2ZMRZoMye'\n[+] Blowfish(OpenBSD) [Hashcat Mode: 3200]\n\nAnalyzing '$6$rounds=5000$saltsalt$'\n[+] SHA-512 Crypt [Hashcat Mode: 1800]",
+      "explanation": "Found MD5, bcrypt, and SHA-512 crypt hashes. Each requires different attack strategies."
+    },
+    {
+      "step": 2,
+      "title": "Rule-Based Attack",
+      "instruction": "Use hashcat with rules to crack the MD5 hash with common password mutations.",
+      "hint": "Use hashcat with -r for rules",
+      "expected_command": "hashcat -m 0 -a 0 md5hash.txt rockyou.txt -r /usr/share/hashcat/rules/best64.rule",
+      "output": "hashcat (v6.2.6) starting\n\ne99a18c428cb38d5f260853678922e03:abc123!@#\n\nSession..........: hashcat\nStatus...........: Cracked\nHash.Mode........: 0 (MD5)\nTime.Estimated...: 0 secs\nSpeed.#1.........: 5432.1 kH/s",
+      "explanation": "Rule-based attack found the password 'abc123!@#' - a common base with symbols appended."
+    },
+    {
+      "step": 3,
+      "title": "Mask Attack",
+      "instruction": "Use a mask attack for a password following the pattern: Capital letter, 4 lowercase, 2 digits.",
+      "hint": "Use -a 3 with mask ?u?l?l?l?l?d?d",
+      "expected_command": "hashcat -m 0 -a 3 hash2.txt ?u?l?l?l?l?d?d",
+      "output": "hashcat (v6.2.6) starting\n\n5f4dcc3b5aa765d61d8327deb882cf99:Admin99\n\nSession..........: hashcat\nStatus...........: Cracked\nHash.Mode........: 0 (MD5)\nTime.Estimated...: 2 mins\nSpeed.#1.........: 2341.5 MH/s",
+      "explanation": "Mask attack cracked the password following the corporate password policy pattern."
+    },
+    {
+      "step": 4,
+      "title": "Combinator Attack",
+      "instruction": "Combine two wordlists to crack a password that's two words joined together.",
+      "hint": "Use -a 1 combinator mode",
+      "expected_command": "hashcat -m 0 -a 1 hash3.txt words1.txt words2.txt",
+      "output": "hashcat (v6.2.6) starting\n\n098f6bcd4621d373cade4e832627b4f6:SunFlower\n\nSession..........: hashcat\nStatus...........: Cracked\nHash.Mode........: 0 (MD5)\n\nAll hashes cracked! Summary:\n- abc123!@# (rule-based)\n- Admin99 (mask attack)\n- SunFlower (combinator)\n\nFLAG{ISC_HASHCRACKER_ELITE_2024}",
+      "explanation": "All hashes cracked using different techniques. Understanding password patterns helps choose the right attack.",
+      "flag": "FLAG{ISC_HASHCRACKER_ELITE_2024}"
+    }
+  ]
+}

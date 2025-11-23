@@ -1,0 +1,50 @@
+{
+  "id": "lab_wireshark_analysis",
+  "title": "Network Traffic Analysis",
+  "description": "Learn to analyze network traffic captures to identify security incidents and extract information.",
+  "difficulty": "Intermediate",
+  "duration": "30 min",
+  "category": "Network Security",
+  "semester_level": 2,
+  "scenario": "You've captured network traffic during a suspected security incident. Analyze the pcap to find evidence of malicious activity.",
+  "environment": "terminal",
+  "tasks": [
+    {
+      "step": 1,
+      "title": "List Captured Protocols",
+      "instruction": "Use tshark to get an overview of protocols in the capture file.",
+      "hint": "Use tshark with protocol hierarchy statistics",
+      "expected_command": "tshark -r capture.pcap -z io,phs",
+      "output": "===================================================================\nProtocol Hierarchy Statistics\nFilter:\n\neth                                      frames:1523 bytes:1245678\n  ip                                     frames:1520 bytes:1243567\n    tcp                                  frames:1234 bytes:1123456\n      http                               frames:456 bytes:234567\n      tls                                frames:345 bytes:456789\n    udp                                  frames:286 bytes:120111\n      dns                                frames:189 bytes:45678\n===================================================================",
+      "explanation": "We can see HTTP, TLS, and DNS traffic - HTTP traffic might contain unencrypted sensitive data."
+    },
+    {
+      "step": 2,
+      "title": "Extract HTTP Requests",
+      "instruction": "Filter and display HTTP GET requests to see what resources were accessed.",
+      "hint": "Use tshark with http.request.method filter",
+      "expected_command": "tshark -r capture.pcap -Y 'http.request.method == GET' -T fields -e http.host -e http.request.uri",
+      "output": "internal.corp.com\t/login.php\ninternal.corp.com\t/admin/dashboard\ninternal.corp.com\t/admin/users\ninternal.corp.com\t/admin/export?data=passwords\nevil-server.com\t/exfil/data.php?d=base64encodeddata",
+      "explanation": "Suspicious! Someone accessed admin pages and there's a connection to evil-server.com with data exfiltration."
+    },
+    {
+      "step": 3,
+      "title": "Find Credentials",
+      "instruction": "Search for POST requests that might contain login credentials.",
+      "hint": "Filter for HTTP POST with form data",
+      "expected_command": "tshark -r capture.pcap -Y 'http.request.method == POST' -T fields -e http.file_data",
+      "output": "username=admin&password=SuperSecret123!\nusername=backup_user&password=Backup@2024",
+      "explanation": "Found cleartext credentials! This shows why HTTPS is essential for login forms."
+    },
+    {
+      "step": 4,
+      "title": "Decode Exfiltrated Data",
+      "instruction": "Extract and decode the base64 data sent to the malicious server.",
+      "hint": "Extract the base64 string and decode it",
+      "expected_command": "tshark -r capture.pcap -Y 'http.host == evil-server.com' -T fields -e http.request.uri | grep -oP 'd=\\K[^&]+' | base64 -d",
+      "output": "EXFILTRATED DATA:\n- Database credentials\n- User list with hashes\n- API keys\nFLAG{ISC_PACKET_ANALYST_2024}",
+      "explanation": "Successfully decoded the exfiltrated data and confirmed data breach. Incident response should be initiated immediately.",
+      "flag": "FLAG{ISC_PACKET_ANALYST_2024}"
+    }
+  ]
+}

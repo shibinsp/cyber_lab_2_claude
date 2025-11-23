@@ -1,0 +1,104 @@
+{
+  "id": 1,
+  "title": "Linux Security Essentials",
+  "duration": "3 hours",
+  "modules": [
+    {
+      "id": 1,
+      "title": "Introduction to Linux Security",
+      "duration": "30 min",
+      "content": "## Welcome to Linux Security Essentials\n\nLinux is one of the most widely used operating systems in servers, cloud infrastructure, and cybersecurity tools. Understanding Linux security is fundamental for any cybersecurity professional.\n\n### What You'll Learn\n\n- Basic Linux architecture and security model\n- User and permission management\n- File system security\n- Process isolation and control\n\n### Why Linux Security Matters\n\nOver 90% of the world's top supercomputers run Linux. Most web servers, cloud platforms, and security tools are Linux-based. Mastering Linux security gives you:\n\n1. **Better understanding of system vulnerabilities**\n2. **Ability to secure server infrastructure**\n3. **Skills for penetration testing and ethical hacking**\n4. **Foundation for advanced security concepts**\n\n### Prerequisites\n\n- Basic understanding of operating systems\n- Familiarity with command-line interfaces\n- Willingness to practice hands-on"
+    },
+    {
+      "id": 2,
+      "title": "Linux File System & Permissions",
+      "duration": "45 min",
+      "content": "## Understanding the Linux File System\n\nThe Linux file system is hierarchical, starting from the root directory `/`. Every file and directory has specific permissions that control access.\n\n### Key Directories\n\n| Directory | Purpose |\n|-----------|----------|\n| `/etc` | System configuration files |\n| `/home` | User home directories |\n| `/var` | Variable data (logs, mail) |\n| `/tmp` | Temporary files |\n| `/bin` | Essential user binaries |\n| `/sbin` | System binaries |\n\n### File Permissions\n\nLinux uses a permission system with three types:\n\n- **Read (r)** - View file contents or list directory\n- **Write (w)** - Modify file or create/delete in directory\n- **Execute (x)** - Run file or access directory\n\n### Permission Classes\n\n- **Owner (u)** - The user who owns the file\n- **Group (g)** - Users in the file's group\n- **Others (o)** - All other users\n\n### Viewing Permissions\n\n```bash\nls -la /etc/passwd\n-rw-r--r-- 1 root root 2834 Jan 15 10:30 /etc/passwd\n```\n\nThe permission string `-rw-r--r--` breaks down as:\n- `-` = regular file\n- `rw-` = owner can read/write\n- `r--` = group can read\n- `r--` = others can read"
+    },
+    {
+      "id": 3,
+      "title": "User Management & Authentication",
+      "duration": "45 min",
+      "content": "## Managing Users and Authentication\n\nProper user management is critical for system security. Linux provides robust tools for creating, modifying, and securing user accounts.\n\n### User Account Files\n\n- `/etc/passwd` - User account information\n- `/etc/shadow` - Encrypted passwords\n- `/etc/group` - Group definitions\n\n### Creating Users\n\n```bash\n# Create a new user\nsudo useradd -m -s /bin/bash newuser\n\n# Set password\nsudo passwd newuser\n\n# Add to sudo group\nsudo usermod -aG sudo newuser\n```\n\n### Password Policies\n\nStrong password policies prevent unauthorized access:\n\n1. **Minimum length** - At least 12 characters\n2. **Complexity** - Mix of upper, lower, numbers, symbols\n3. **Expiration** - Regular password rotation\n4. **History** - Prevent reuse of old passwords\n\n### Configuring Password Aging\n\n```bash\n# Set password to expire in 90 days\nsudo chage -M 90 username\n\n# View password aging info\nsudo chage -l username\n```\n\n### SSH Key Authentication\n\nFor servers, SSH keys are more secure than passwords:\n\n```bash\n# Generate SSH key pair\nssh-keygen -t ed25519 -C \"your_email@example.com\"\n\n# Copy public key to server\nssh-copy-id user@server\n```"
+    },
+    {
+      "id": 4,
+      "title": "Process Security & Monitoring",
+      "duration": "30 min",
+      "content": "## Process Security Fundamentals\n\nUnderstanding and monitoring processes is essential for detecting malicious activity and maintaining system security.\n\n### Viewing Processes\n\n```bash\n# List all processes\nps aux\n\n# Real-time process monitoring\ntop\nhtop\n\n# Process tree\npstree\n```\n\n### Key Process Attributes\n\n- **PID** - Process ID\n- **PPID** - Parent Process ID\n- **UID** - User ID running the process\n- **CPU/MEM** - Resource usage\n\n### Identifying Suspicious Processes\n\nLook for:\n\n1. Processes running as root that shouldn't be\n2. Unknown processes with high CPU/memory\n3. Processes with unusual network connections\n4. Hidden processes (names starting with .)\n\n### Network Connections\n\n```bash\n# View network connections\nnetstat -tulpn\nss -tulpn\n\n# Find process using a port\nlsof -i :80\n```\n\n### Process Control\n\n```bash\n# Kill a process\nkill PID\nkill -9 PID  # Force kill\n\n# Kill by name\nkillall processname\npkill processname\n```"
+    },
+    {
+      "id": 5,
+      "title": "Firewall Configuration with iptables",
+      "duration": "30 min",
+      "content": "## Linux Firewall Basics\n\nFirewalls control network traffic to protect your system from unauthorized access. Linux uses iptables (or nftables) for packet filtering.\n\n### iptables Chains\n\n- **INPUT** - Incoming traffic to the system\n- **OUTPUT** - Outgoing traffic from the system\n- **FORWARD** - Traffic passing through\n\n### Basic Commands\n\n```bash\n# View current rules\nsudo iptables -L -v -n\n\n# Set default policies\nsudo iptables -P INPUT DROP\nsudo iptables -P FORWARD DROP\nsudo iptables -P OUTPUT ACCEPT\n```\n\n### Common Rules\n\n```bash\n# Allow loopback\nsudo iptables -A INPUT -i lo -j ACCEPT\n\n# Allow established connections\nsudo iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT\n\n# Allow SSH\nsudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT\n\n# Allow HTTP/HTTPS\nsudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT\nsudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT\n```\n\n### Using UFW (Uncomplicated Firewall)\n\n```bash\n# Enable UFW\nsudo ufw enable\n\n# Allow services\nsudo ufw allow ssh\nsudo ufw allow http\n\n# View status\nsudo ufw status verbose\n```"
+    }
+  ],
+  "assessment": {
+    "passing_score": 80,
+    "max_attempts": 3,
+    "retry_delay_hours": 24,
+    "questions": [
+      {
+        "id": 1,
+        "question": "Which directory contains system configuration files in Linux?",
+        "options": ["/bin", "/etc", "/home", "/tmp"],
+        "correct": 1
+      },
+      {
+        "id": 2,
+        "question": "What does the 'x' permission allow on a file?",
+        "options": ["Read the file", "Write to the file", "Execute the file", "Delete the file"],
+        "correct": 2
+      },
+      {
+        "id": 3,
+        "question": "Which file contains encrypted user passwords?",
+        "options": ["/etc/passwd", "/etc/shadow", "/etc/group", "/etc/users"],
+        "correct": 1
+      },
+      {
+        "id": 4,
+        "question": "What command shows real-time process monitoring?",
+        "options": ["ls", "ps", "top", "cat"],
+        "correct": 2
+      },
+      {
+        "id": 5,
+        "question": "Which iptables chain handles incoming traffic?",
+        "options": ["OUTPUT", "FORWARD", "INPUT", "FILTER"],
+        "correct": 2
+      },
+      {
+        "id": 6,
+        "question": "What is the recommended minimum password length for security?",
+        "options": ["6 characters", "8 characters", "12 characters", "4 characters"],
+        "correct": 2
+      },
+      {
+        "id": 7,
+        "question": "Which command generates an SSH key pair?",
+        "options": ["ssh-copy-id", "ssh-keygen", "ssh-add", "ssh-agent"],
+        "correct": 1
+      },
+      {
+        "id": 8,
+        "question": "What does 'chmod 755' mean for a file?",
+        "options": ["Owner: rwx, Group: r-x, Others: r-x", "Owner: rw-, Group: rw-, Others: rw-", "Owner: rwx, Group: rwx, Others: rwx", "Owner: r-x, Group: r-x, Others: r-x"],
+        "correct": 0
+      },
+      {
+        "id": 9,
+        "question": "Which command shows network connections and listening ports?",
+        "options": ["ps aux", "netstat -tulpn", "ls -la", "cat /etc/services"],
+        "correct": 1
+      },
+      {
+        "id": 10,
+        "question": "What is the root directory in Linux represented by?",
+        "options": ["/root", "/", "~", "/home"],
+        "correct": 1
+      }
+    ]
+  }
+}

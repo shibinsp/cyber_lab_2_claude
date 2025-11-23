@@ -1,0 +1,50 @@
+{
+  "id": "lab_log_analysis",
+  "title": "Security Log Analysis",
+  "description": "Learn to analyze system logs to detect security incidents and suspicious activities. Critical skill for SOC analysts.",
+  "difficulty": "Basic",
+  "duration": "20 min",
+  "category": "Incident Response",
+  "semester_level": 1,
+  "scenario": "The security team has detected unusual activity on a web server. Analyze the authentication logs to identify the attack pattern and determine if the attacker succeeded.",
+  "environment": "terminal",
+  "tasks": [
+    {
+      "step": 1,
+      "title": "View Authentication Logs",
+      "instruction": "Start by examining the authentication log file to see recent login attempts.",
+      "hint": "Use tail to view the last lines of auth.log",
+      "expected_command": "tail -50 /var/log/auth.log",
+      "output": "Nov 22 09:15:23 server sshd[1234]: Failed password for admin from 10.0.0.100 port 54321 ssh2\nNov 22 09:15:25 server sshd[1234]: Failed password for admin from 10.0.0.100 port 54321 ssh2\nNov 22 09:15:27 server sshd[1234]: Failed password for admin from 10.0.0.100 port 54321 ssh2\nNov 22 09:15:29 server sshd[1234]: Failed password for root from 10.0.0.100 port 54322 ssh2\nNov 22 09:15:31 server sshd[1234]: Failed password for root from 10.0.0.100 port 54322 ssh2\nNov 22 09:15:33 server sshd[1234]: Failed password for root from 10.0.0.100 port 54322 ssh2\nNov 22 09:15:35 server sshd[1234]: Accepted password for admin from 10.0.0.100 port 54323 ssh2",
+      "explanation": "Multiple failed attempts followed by success - this is a brute force attack pattern!"
+    },
+    {
+      "step": 2,
+      "title": "Filter Failed Attempts",
+      "instruction": "Filter the logs to count how many failed login attempts came from the suspicious IP.",
+      "hint": "Use grep to filter for Failed and the IP, then count with wc -l",
+      "expected_command": "grep 'Failed.*10.0.0.100' /var/log/auth.log | wc -l",
+      "output": "156",
+      "explanation": "156 failed attempts! This confirms a brute force attack from IP 10.0.0.100."
+    },
+    {
+      "step": 3,
+      "title": "Identify Targeted Users",
+      "instruction": "Find which usernames were targeted in the attack.",
+      "hint": "Use grep, awk to extract usernames, sort and uniq -c to count",
+      "expected_command": "grep 'Failed.*10.0.0.100' /var/log/auth.log | awk '{print $9}' | sort | uniq -c | sort -rn",
+      "output": "     89 admin\n     45 root\n     12 user\n      7 test\n      3 guest",
+      "explanation": "The attacker primarily targeted 'admin' and 'root' accounts - common targets in brute force attacks."
+    },
+    {
+      "step": 4,
+      "title": "Confirm Breach",
+      "instruction": "Check if any successful logins occurred from the attacker's IP to confirm the breach.",
+      "hint": "Search for 'Accepted' with the suspicious IP",
+      "expected_command": "grep 'Accepted.*10.0.0.100' /var/log/auth.log",
+      "output": "Nov 22 09:15:35 server sshd[1234]: Accepted password for admin from 10.0.0.100 port 54323 ssh2\n\nBREACH CONFIRMED - Attacker gained access to 'admin' account\nFLAG{ISC_LOG_ANALYST_CERTIFIED_2024}",
+      "explanation": "Breach confirmed! The attacker successfully logged in as 'admin'. Immediate incident response required: reset passwords, check for backdoors, and block the IP.",
+      "flag": "FLAG{ISC_LOG_ANALYST_CERTIFIED_2024}"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "lab_steganography",
+  "title": "Steganography Detection & Extraction",
+  "description": "Learn to detect and extract hidden data from images and files using steganography tools.",
+  "difficulty": "Intermediate",
+  "duration": "25 min",
+  "category": "Cryptography",
+  "semester_level": 2,
+  "scenario": "Intelligence suggests sensitive data is being exfiltrated through innocent-looking images. Analyze the files to find hidden messages.",
+  "environment": "terminal",
+  "tasks": [
+    {
+      "step": 1,
+      "title": "Analyze File Metadata",
+      "instruction": "Check the image file for suspicious metadata or anomalies.",
+      "hint": "Use exiftool to examine metadata",
+      "expected_command": "exiftool suspicious.jpg",
+      "output": "ExifTool Version Number         : 12.40\nFile Name                       : suspicious.jpg\nFile Size                       : 2.5 MB\nFile Type                       : JPEG\nImage Width                     : 1920\nImage Height                    : 1080\nComment                         : Password hint: company name lowercase\nWarning                         : [minor] Trailer data after EOF",
+      "explanation": "Found a password hint in comments and trailer data after EOF - signs of hidden content!"
+    },
+    {
+      "step": 2,
+      "title": "Check for Appended Data",
+      "instruction": "Use binwalk to scan for embedded files or appended data.",
+      "hint": "Run binwalk on the image",
+      "expected_command": "binwalk suspicious.jpg",
+      "output": "DECIMAL       HEXADECIMAL     DESCRIPTION\n--------------------------------------------------------------------------------\n0             0x0             JPEG image data\n2621440       0x280000        Zip archive data, at least v2.0 to extract\n2621512       0x280048        End of Zip archive",
+      "explanation": "Found a ZIP archive appended to the JPEG! This is a common steganography technique."
+    },
+    {
+      "step": 3,
+      "title": "Extract Hidden Archive",
+      "instruction": "Extract the hidden ZIP file from the image.",
+      "hint": "Use binwalk with extract flag",
+      "expected_command": "binwalk -e suspicious.jpg",
+      "output": "DECIMAL       HEXADECIMAL     DESCRIPTION\n--------------------------------------------------------------------------------\n0             0x0             JPEG image data\n2621440       0x280000        Zip archive data, encrypted at least v2.0\n\nExtracted to: _suspicious.jpg.extracted/\n  - 280000.zip (password protected)",
+      "explanation": "ZIP extracted but it's password protected. Remember the hint from metadata."
+    },
+    {
+      "step": 4,
+      "title": "Extract Secret Data",
+      "instruction": "Use steghide to extract hidden data using the password hint (company name: 'acme').",
+      "hint": "Use steghide extract with password",
+      "expected_command": "steghide extract -sf suspicious.jpg -p acme",
+      "output": "wrote extracted data to \"secret.txt\".\n\n$ cat secret.txt\nCONFIDENTIAL DATA EXFILTRATION\n==============================\nProject codenames:\n- Operation Midnight\n- Project Phoenix\n\nFLAG{ISC_STEGO_DETECTIVE_2024}",
+      "explanation": "Successfully extracted the hidden message using steghide. Data exfiltration confirmed!",
+      "flag": "FLAG{ISC_STEGO_DETECTIVE_2024}"
+    }
+  ]
+}

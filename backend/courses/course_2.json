@@ -1,0 +1,104 @@
+{
+  "id": 2,
+  "title": "Network Security Fundamentals",
+  "duration": "4 hours",
+  "modules": [
+    {
+      "id": 1,
+      "title": "Introduction to Network Security",
+      "duration": "30 min",
+      "content": "## Welcome to Network Security Fundamentals\n\nNetwork security is the practice of protecting computer networks from unauthorized access, misuse, and attacks. In this course, you'll learn essential concepts and tools for securing networks.\n\n### What You'll Learn\n\n- Network architecture and protocols\n- Common network attacks and defenses\n- Network scanning and enumeration\n- Firewall and IDS/IPS concepts\n- Traffic analysis techniques\n\n### The OSI Model\n\n| Layer | Name | Examples |\n|-------|------|----------|\n| 7 | Application | HTTP, DNS, FTP |\n| 6 | Presentation | SSL/TLS, JPEG |\n| 5 | Session | NetBIOS, RPC |\n| 4 | Transport | TCP, UDP |\n| 3 | Network | IP, ICMP |\n| 2 | Data Link | Ethernet, ARP |\n| 1 | Physical | Cables, Hubs |\n\n### Why Network Security Matters\n\n- Protect sensitive data in transit\n- Prevent unauthorized access\n- Ensure service availability\n- Meet compliance requirements\n- Defend against cyber attacks"
+    },
+    {
+      "id": 2,
+      "title": "Network Protocols & Vulnerabilities",
+      "duration": "45 min",
+      "content": "## Understanding Network Protocols\n\nNetwork protocols define how data is transmitted. Many protocols have inherent vulnerabilities that attackers exploit.\n\n### Common Protocols\n\n**TCP (Transmission Control Protocol)**\n- Connection-oriented\n- Reliable delivery\n- Three-way handshake: SYN → SYN-ACK → ACK\n\n**UDP (User Datagram Protocol)**\n- Connectionless\n- No guaranteed delivery\n- Used for DNS, streaming\n\n**HTTP/HTTPS**\n- Web communication\n- Port 80 (HTTP) / 443 (HTTPS)\n- HTTPS encrypts data with TLS\n\n### Protocol Vulnerabilities\n\n**ARP Spoofing**\n- ARP has no authentication\n- Attackers can redirect traffic\n- Enables man-in-the-middle attacks\n\n**DNS Poisoning**\n- Corrupt DNS cache\n- Redirect users to malicious sites\n- Affects all users of poisoned resolver\n\n**TCP Session Hijacking**\n- Predict TCP sequence numbers\n- Take over established connections\n- Bypass authentication\n\n### Secure Alternatives\n\n| Insecure | Secure Alternative |\n|----------|--------------------|\n| Telnet | SSH |\n| FTP | SFTP/SCP |\n| HTTP | HTTPS |\n| SMTP | SMTPS |"
+    },
+    {
+      "id": 3,
+      "title": "Network Scanning Techniques",
+      "duration": "45 min",
+      "content": "## Network Scanning & Enumeration\n\nNetwork scanning helps identify hosts, services, and vulnerabilities. It's essential for both attackers and defenders.\n\n### Types of Scans\n\n**Host Discovery**\n```bash\n# Ping sweep\nnmap -sn 192.168.1.0/24\n\n# ARP scan (local network)\narp-scan --localnet\n```\n\n**Port Scanning**\n```bash\n# TCP SYN scan (stealth)\nsudo nmap -sS target\n\n# TCP connect scan\nnmap -sT target\n\n# UDP scan\nsudo nmap -sU target\n\n# All ports\nnmap -p- target\n```\n\n**Service Detection**\n```bash\n# Version detection\nnmap -sV target\n\n# OS detection\nsudo nmap -O target\n\n# Aggressive scan\nnmap -A target\n```\n\n### Common Ports\n\n| Port | Service |\n|------|----------|\n| 21 | FTP |\n| 22 | SSH |\n| 23 | Telnet |\n| 25 | SMTP |\n| 53 | DNS |\n| 80 | HTTP |\n| 443 | HTTPS |\n| 3306 | MySQL |\n| 3389 | RDP |\n\n### Nmap Scripts\n\n```bash\n# Vulnerability scanning\nnmap --script vuln target\n\n# SMB enumeration\nnmap --script smb-enum-shares target\n```"
+    },
+    {
+      "id": 4,
+      "title": "Firewalls & Intrusion Detection",
+      "duration": "45 min",
+      "content": "## Firewalls and IDS/IPS\n\nFirewalls and intrusion detection systems are critical defense layers in network security.\n\n### Firewall Types\n\n**Packet Filter**\n- Examines packet headers\n- Fast but limited inspection\n- Based on IP, port, protocol\n\n**Stateful Inspection**\n- Tracks connection state\n- More secure than packet filter\n- Understands TCP sessions\n\n**Application Layer (WAF)**\n- Deep packet inspection\n- Understands application protocols\n- Can detect application attacks\n\n### IDS vs IPS\n\n**IDS (Intrusion Detection System)**\n- Passive monitoring\n- Alerts on suspicious activity\n- Examples: Snort, Suricata\n\n**IPS (Intrusion Prevention System)**\n- Active blocking\n- Automatically stops attacks\n- Inline with traffic flow\n\n### Firewall Best Practices\n\n1. **Default deny** - Block all, allow specific\n2. **Least privilege** - Only necessary access\n3. **Regular audits** - Review rules periodically\n4. **Log everything** - Monitor for anomalies\n5. **Layered defense** - Multiple security layers\n\n### Sample Firewall Rules\n\n```\n# Allow established connections\nallow tcp any any established\n\n# Allow SSH from admin network\nallow tcp 10.0.1.0/24 any 22\n\n# Allow web traffic\nallow tcp any any 80,443\n\n# Deny everything else\ndeny ip any any log\n```"
+    },
+    {
+      "id": 5,
+      "title": "Traffic Analysis with Wireshark",
+      "duration": "45 min",
+      "content": "## Network Traffic Analysis\n\nTraffic analysis helps identify attacks, troubleshoot issues, and understand network behavior.\n\n### Wireshark Basics\n\nWireshark is a powerful packet analyzer for capturing and inspecting network traffic.\n\n**Capture Filters** (during capture)\n```\nhost 192.168.1.100\nport 80\nnet 10.0.0.0/8\n```\n\n**Display Filters** (after capture)\n```\nip.addr == 192.168.1.100\ntcp.port == 443\nhttp.request.method == \"POST\"\ndns.qry.name contains \"example\"\n```\n\n### Identifying Attacks\n\n**Port Scan Detection**\n- Many SYN packets to different ports\n- Sequential port numbers\n- Same source, multiple destinations\n\n**ARP Spoofing**\n- Multiple ARP replies\n- IP address conflicts\n- Unusual MAC associations\n\n**DNS Exfiltration**\n- Unusually long DNS queries\n- High volume of DNS traffic\n- Queries to suspicious domains\n\n### Useful Wireshark Features\n\n1. **Follow Stream** - Reconstruct conversations\n2. **Statistics** - Protocol hierarchy, endpoints\n3. **Export Objects** - Extract files from capture\n4. **Coloring Rules** - Highlight traffic types\n\n### tcpdump Commands\n\n```bash\n# Capture all traffic\nsudo tcpdump -i eth0\n\n# Capture specific host\nsudo tcpdump host 192.168.1.100\n\n# Save to file\nsudo tcpdump -w capture.pcap\n\n# Read capture file\ntcpdump -r capture.pcap\n```"
+    }
+  ],
+  "assessment": {
+    "passing_score": 80,
+    "max_attempts": 3,
+    "retry_delay_hours": 24,
+    "questions": [
+      {
+        "id": 1,
+        "question": "Which OSI layer handles IP addressing?",
+        "options": ["Application", "Transport", "Network", "Data Link"],
+        "correct": 2
+      },
+      {
+        "id": 2,
+        "question": "What is the default port for SSH?",
+        "options": ["21", "22", "23", "25"],
+        "correct": 1
+      },
+      {
+        "id": 3,
+        "question": "Which Nmap scan type is considered 'stealthy'?",
+        "options": ["TCP Connect (-sT)", "SYN Scan (-sS)", "UDP Scan (-sU)", "Ping Scan (-sn)"],
+        "correct": 1
+      },
+      {
+        "id": 4,
+        "question": "What does IPS stand for?",
+        "options": ["Internet Protocol Security", "Intrusion Prevention System", "Internal Protection Service", "Integrated Packet Scanner"],
+        "correct": 1
+      },
+      {
+        "id": 5,
+        "question": "Which protocol is vulnerable to spoofing due to no authentication?",
+        "options": ["HTTPS", "SSH", "ARP", "DNS"],
+        "correct": 2
+      },
+      {
+        "id": 6,
+        "question": "What tool is commonly used for packet capture and analysis?",
+        "options": ["Nmap", "Wireshark", "Metasploit", "Burp Suite"],
+        "correct": 1
+      },
+      {
+        "id": 7,
+        "question": "Which TCP flag initiates a connection?",
+        "options": ["ACK", "FIN", "SYN", "RST"],
+        "correct": 2
+      },
+      {
+        "id": 8,
+        "question": "What is the secure alternative to Telnet?",
+        "options": ["FTP", "HTTP", "SSH", "SMTP"],
+        "correct": 2
+      },
+      {
+        "id": 9,
+        "question": "Which firewall type performs deep packet inspection?",
+        "options": ["Packet Filter", "Stateful Inspection", "Application Layer", "Network Address Translation"],
+        "correct": 2
+      },
+      {
+        "id": 10,
+        "question": "What port does HTTPS use by default?",
+        "options": ["80", "8080", "443", "8443"],
+        "correct": 2
+      }
+    ]
+  }
+}

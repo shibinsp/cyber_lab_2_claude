@@ -1,0 +1,50 @@
+{
+  "id": "lab_linux_101",
+  "title": "Linux File System Basics",
+  "description": "Learn essential Linux commands for navigating and examining file systems. Perfect for beginners starting their cybersecurity journey.",
+  "difficulty": "Basic",
+  "duration": "15 min",
+  "category": "Linux Fundamentals",
+  "semester_level": 1,
+  "scenario": "You have gained SSH access to a compromised server during a penetration test. Your objective is to navigate the file system and locate a hidden flag that proves successful access.",
+  "environment": "terminal",
+  "tasks": [
+    {
+      "step": 1,
+      "title": "List Directory Contents",
+      "instruction": "First, let's see what files are in the current directory. Use the `ls` command with flags to show all files including hidden ones.",
+      "hint": "The -la flags show all files in long format",
+      "expected_command": "ls -la",
+      "output": "total 32\ndrwxr-xr-x  4 root root 4096 Nov 22 10:30 .\ndrwxr-xr-x 24 root root 4096 Nov 22 09:15 ..\n-rw-------  1 root root  220 Nov 22 09:15 .bash_history\n-rw-r--r--  1 root root 3771 Nov 22 09:15 .bashrc\ndrwx------  2 root root 4096 Nov 22 10:30 .hidden\n-rw-r--r--  1 root root  807 Nov 22 09:15 .profile\ndrwxr-xr-x  2 root root 4096 Nov 22 10:25 documents\n-rw-r--r--  1 root root   45 Nov 22 10:20 readme.txt",
+      "explanation": "The ls -la command reveals a hidden directory called .hidden - this is suspicious and worth investigating."
+    },
+    {
+      "step": 2,
+      "title": "Navigate to Hidden Directory",
+      "instruction": "There's a suspicious `.hidden` directory. Change into this directory to investigate further.",
+      "hint": "Use the cd command to change directories",
+      "expected_command": "cd .hidden",
+      "output": "",
+      "explanation": "We've entered the hidden directory. Now let's see what's inside."
+    },
+    {
+      "step": 3,
+      "title": "Explore Hidden Directory",
+      "instruction": "List the contents of this hidden directory to find any secret files.",
+      "hint": "Use ls -la again",
+      "expected_command": "ls -la",
+      "output": "total 12\ndrwx------ 2 root root 4096 Nov 22 10:30 .\ndrwxr-xr-x 4 root root 4096 Nov 22 10:30 ..\n-rw------- 1 root root   42 Nov 22 10:30 secret.txt",
+      "explanation": "Found it! There's a secret.txt file with restricted permissions."
+    },
+    {
+      "step": 4,
+      "title": "Read the Secret File",
+      "instruction": "Read the contents of the secret file to retrieve the flag.",
+      "hint": "Use the cat command to display file contents",
+      "expected_command": "cat secret.txt",
+      "output": "FLAG{ISC_KARNATAKA_LINUX_MASTER_2024}",
+      "explanation": "Excellent! You've successfully located and extracted the flag. This demonstrates basic file system navigation skills essential for penetration testing.",
+      "flag": "FLAG{ISC_KARNATAKA_LINUX_MASTER_2024}"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "lab_firewall_config",
+  "title": "Firewall Configuration with iptables",
+  "description": "Learn to configure Linux firewall rules using iptables for network security.",
+  "difficulty": "Intermediate",
+  "duration": "30 min",
+  "category": "Network Security",
+  "semester_level": 2,
+  "scenario": "Configure a firewall to protect a web server while allowing necessary services.",
+  "environment": "terminal",
+  "tasks": [
+    {
+      "step": 1,
+      "title": "View Current Rules",
+      "instruction": "Display the current iptables rules to understand the existing configuration.",
+      "hint": "Use iptables -L with verbose and numeric output",
+      "expected_command": "iptables -L -v -n",
+      "output": "Chain INPUT (policy ACCEPT 0 packets, 0 bytes)\n pkts bytes target     prot opt in     out     source               destination\n\nChain FORWARD (policy ACCEPT 0 packets, 0 bytes)\n pkts bytes target     prot opt in     out     source               destination\n\nChain OUTPUT (policy ACCEPT 0 packets, 0 bytes)\n pkts bytes target     prot opt in     out     source               destination",
+      "explanation": "Currently all chains have ACCEPT policy with no rules - completely open firewall!"
+    },
+    {
+      "step": 2,
+      "title": "Allow Established Connections",
+      "instruction": "Allow established and related connections to prevent breaking existing sessions.",
+      "hint": "Use -m state with ESTABLISHED,RELATED",
+      "expected_command": "iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT",
+      "output": "",
+      "explanation": "This rule ensures responses to outgoing connections are allowed back in."
+    },
+    {
+      "step": 3,
+      "title": "Allow Required Services",
+      "instruction": "Allow SSH (22), HTTP (80), and HTTPS (443) from any source.",
+      "hint": "Add rules for each port using -p tcp --dport",
+      "expected_command": "iptables -A INPUT -p tcp --dport 22 -j ACCEPT && iptables -A INPUT -p tcp --dport 80 -j ACCEPT && iptables -A INPUT -p tcp --dport 443 -j ACCEPT",
+      "output": "",
+      "explanation": "Essential services are now allowed through the firewall."
+    },
+    {
+      "step": 4,
+      "title": "Set Default Drop Policy",
+      "instruction": "Set the default INPUT policy to DROP to block all other traffic, then verify.",
+      "hint": "Use -P to set policy",
+      "expected_command": "iptables -P INPUT DROP && iptables -L -v -n",
+      "output": "Chain INPUT (policy DROP 0 packets, 0 bytes)\n pkts bytes target     prot opt in     out     source               destination\n    0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            state RELATED,ESTABLISHED\n    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:22\n    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:80\n    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:443\n\nFLAG{ISC_FIREWALL_GUARDIAN_2024}",
+      "explanation": "Firewall configured! Default deny policy with explicit allows for required services.",
+      "flag": "FLAG{ISC_FIREWALL_GUARDIAN_2024}"
+    }
+  ]
+}

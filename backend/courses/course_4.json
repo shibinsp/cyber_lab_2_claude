@@ -1,0 +1,48 @@
+{
+  "id": 4,
+  "title": "Cryptography & Hash Analysis",
+  "duration": "4 hours",
+  "modules": [
+    {
+      "id": 1,
+      "title": "Introduction to Cryptography",
+      "duration": "35 min",
+      "content": "## Cryptography Fundamentals\n\nCryptography is the practice of securing information through encoding.\n\n### Types of Cryptography\n\n**Symmetric Encryption**\n- Same key for encrypt/decrypt\n- Fast performance\n- Examples: AES, DES, 3DES\n\n**Asymmetric Encryption**\n- Public/Private key pairs\n- Slower but more secure for key exchange\n- Examples: RSA, ECC\n\n### Key Concepts\n\n- **Plaintext** - Original message\n- **Ciphertext** - Encrypted message\n- **Key** - Secret used in algorithm\n- **Algorithm** - Mathematical process\n\n### Common Uses\n\n1. Data at rest encryption\n2. Data in transit (TLS/SSL)\n3. Digital signatures\n4. Password storage"
+    },
+    {
+      "id": 2,
+      "title": "Hashing Algorithms",
+      "duration": "40 min",
+      "content": "## Understanding Hash Functions\n\nHash functions create fixed-size fingerprints of data.\n\n### Properties\n\n- **Deterministic** - Same input = same output\n- **One-way** - Cannot reverse\n- **Collision resistant** - Hard to find duplicates\n- **Avalanche effect** - Small change = big difference\n\n### Common Algorithms\n\n| Algorithm | Output Size | Status |\n|-----------|-------------|--------|\n| MD5 | 128 bits | Broken |\n| SHA-1 | 160 bits | Deprecated |\n| SHA-256 | 256 bits | Secure |\n| SHA-512 | 512 bits | Secure |\n| bcrypt | Variable | Secure |\n\n### Example Usage\n\n```bash\n# Generate SHA-256 hash\necho -n 'password' | sha256sum\n\n# MD5 hash\necho -n 'password' | md5sum\n```"
+    },
+    {
+      "id": 3,
+      "title": "Password Cracking Techniques",
+      "duration": "45 min",
+      "content": "## Password Cracking Methods\n\n### Attack Types\n\n**Dictionary Attack**\n- Uses wordlists\n- Fast for common passwords\n\n**Brute Force**\n- Tries all combinations\n- Time-consuming\n\n**Rainbow Tables**\n- Precomputed hashes\n- Defeated by salting\n\n**Hybrid Attack**\n- Dictionary + rules\n- Adds numbers, symbols\n\n### Tools\n\n```bash\n# John the Ripper\njohn --wordlist=/usr/share/wordlists/rockyou.txt hashes.txt\n\n# Hashcat\nhashcat -m 0 -a 0 hashes.txt wordlist.txt\n\n# Hash modes: 0=MD5, 100=SHA1, 1400=SHA256\n```\n\n### Defense: Salting\n\n```python\nimport hashlib\nimport os\n\nsalt = os.urandom(32)\nhash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt, 100000)\n```"
+    },
+    {
+      "id": 4,
+      "title": "Encryption in Practice",
+      "duration": "40 min",
+      "content": "## Practical Encryption\n\n### AES Encryption\n\n```python\nfrom Crypto.Cipher import AES\nfrom Crypto.Random import get_random_bytes\n\nkey = get_random_bytes(32)  # 256-bit key\ncipher = AES.new(key, AES.MODE_GCM)\nciphertext, tag = cipher.encrypt_and_digest(data)\n```\n\n### OpenSSL Commands\n\n```bash\n# Encrypt file\nopenssl enc -aes-256-cbc -salt -in file.txt -out file.enc\n\n# Decrypt file\nopenssl enc -aes-256-cbc -d -in file.enc -out file.txt\n\n# Generate RSA key pair\nopenssl genrsa -out private.pem 2048\nopenssl rsa -in private.pem -pubout -out public.pem\n```\n\n### Best Practices\n\n1. Use modern algorithms (AES-256, SHA-256)\n2. Proper key management\n3. Use authenticated encryption\n4. Secure random number generation"
+    }
+  ],
+  "assessment": {
+    "passing_score": 80,
+    "max_attempts": 3,
+    "retry_delay_hours": 24,
+    "questions": [
+      {"id": 1, "question": "Which encryption type uses the same key for encryption and decryption?", "options": ["Asymmetric", "Symmetric", "Hashing", "Encoding"], "correct": 1},
+      {"id": 2, "question": "What is the output size of SHA-256?", "options": ["128 bits", "160 bits", "256 bits", "512 bits"], "correct": 2},
+      {"id": 3, "question": "Which hashing algorithm is considered broken?", "options": ["SHA-256", "bcrypt", "MD5", "SHA-512"], "correct": 2},
+      {"id": 4, "question": "What defeats rainbow table attacks?", "options": ["Longer passwords", "Salting", "Encryption", "Compression"], "correct": 1},
+      {"id": 5, "question": "Which tool is commonly used for password cracking?", "options": ["Nmap", "Wireshark", "Hashcat", "Burp Suite"], "correct": 2},
+      {"id": 6, "question": "What property means a hash cannot be reversed?", "options": ["Deterministic", "One-way", "Collision resistant", "Avalanche"], "correct": 1},
+      {"id": 7, "question": "Which is an asymmetric encryption algorithm?", "options": ["AES", "DES", "RSA", "3DES"], "correct": 2},
+      {"id": 8, "question": "What is the recommended minimum key size for AES?", "options": ["64 bits", "128 bits", "256 bits", "512 bits"], "correct": 1},
+      {"id": 9, "question": "Which attack uses precomputed hash tables?", "options": ["Dictionary", "Brute force", "Rainbow table", "Hybrid"], "correct": 2},
+      {"id": 10, "question": "What does PBKDF2 stand for?", "options": ["Password-Based Key Derivation Function 2", "Public-Based Key Distribution Function 2", "Private-Based Key Decryption Function 2", "Protected-Based Key Development Function 2"], "correct": 0}
+    ]
+  }
+}

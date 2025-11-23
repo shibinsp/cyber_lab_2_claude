@@ -1,0 +1,50 @@
+{
+  "id": "lab_web_recon",
+  "title": "Web Application Reconnaissance",
+  "description": "Learn to gather information about web applications using various reconnaissance techniques.",
+  "difficulty": "Intermediate",
+  "duration": "25 min",
+  "category": "Web Security",
+  "semester_level": 2,
+  "scenario": "You are tasked with performing reconnaissance on a target web application to identify potential vulnerabilities and gather intelligence.",
+  "environment": "terminal",
+  "tasks": [
+    {
+      "step": 1,
+      "title": "Directory Enumeration",
+      "instruction": "Use gobuster to enumerate hidden directories on the target web server.",
+      "hint": "Use gobuster dir with a wordlist",
+      "expected_command": "gobuster dir -u http://target.com -w /usr/share/wordlists/dirb/common.txt",
+      "output": "===============================================================\nGobuster v3.1.0\n===============================================================\n[+] Url:                     http://target.com\n[+] Wordlist:                /usr/share/wordlists/dirb/common.txt\n===============================================================\n/admin                (Status: 301)\n/backup               (Status: 301)\n/config               (Status: 403)\n/login                (Status: 200)\n/uploads              (Status: 301)\n===============================================================",
+      "explanation": "Found several interesting directories including /admin and /backup that warrant further investigation."
+    },
+    {
+      "step": 2,
+      "title": "Technology Detection",
+      "instruction": "Use whatweb to identify technologies used by the target website.",
+      "hint": "Run whatweb against the target URL",
+      "expected_command": "whatweb http://target.com",
+      "output": "http://target.com [200 OK] Apache[2.4.41], Country[RESERVED][ZZ], HTML5, HTTPServer[Ubuntu Linux][Apache/2.4.41 (Ubuntu)], IP[192.168.1.50], JQuery[3.5.1], PHP[7.4.3], Script, Title[Welcome - Target Corp], X-Powered-By[PHP/7.4.3]",
+      "explanation": "Identified Apache 2.4.41 on Ubuntu with PHP 7.4.3 - these versions may have known vulnerabilities."
+    },
+    {
+      "step": 3,
+      "title": "Check Robots.txt",
+      "instruction": "Examine the robots.txt file for hidden or sensitive paths.",
+      "hint": "Use curl to fetch robots.txt",
+      "expected_command": "curl http://target.com/robots.txt",
+      "output": "User-agent: *\nDisallow: /admin/\nDisallow: /backup/\nDisallow: /config/\nDisallow: /secret-docs/\nDisallow: /api/internal/",
+      "explanation": "Found sensitive paths the site owners don't want indexed - these are prime targets for investigation."
+    },
+    {
+      "step": 4,
+      "title": "Find the Flag",
+      "instruction": "Access the secret-docs directory to find sensitive information.",
+      "hint": "Use curl to access the hidden directory",
+      "expected_command": "curl http://target.com/secret-docs/",
+      "output": "<!DOCTYPE html>\n<html>\n<head><title>Confidential Documents</title></head>\n<body>\n<h1>Internal Documents</h1>\n<p>FLAG{ISC_WEB_RECON_MASTER_2024}</p>\n</body>\n</html>",
+      "explanation": "Successfully found sensitive data in the hidden directory. This demonstrates the importance of proper access controls.",
+      "flag": "FLAG{ISC_WEB_RECON_MASTER_2024}"
+    }
+  ]
+}

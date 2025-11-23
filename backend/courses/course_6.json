@@ -1,0 +1,29 @@
+{
+  "id": 6,
+  "title": "Incident Response & Forensics",
+  "duration": "5 hours",
+  "modules": [
+    {"id": 1, "title": "Incident Response Fundamentals", "duration": "40 min", "content": "## Incident Response Overview\n\n### IR Lifecycle (NIST)\n\n1. **Preparation** - Policies, tools, training\n2. **Detection & Analysis** - Identify incidents\n3. **Containment** - Limit damage\n4. **Eradication** - Remove threat\n5. **Recovery** - Restore operations\n6. **Lessons Learned** - Post-incident review\n\n### Incident Categories\n\n- Malware infections\n- Unauthorized access\n- Data breaches\n- Denial of Service\n- Insider threats\n\n### IR Team Roles\n\n- Incident Handler\n- Forensic Analyst\n- Malware Analyst\n- Threat Intelligence"},
+    {"id": 2, "title": "Log Analysis", "duration": "50 min", "content": "## Security Log Analysis\n\n### Important Logs\n\n**Linux**\n- `/var/log/auth.log` - Authentication\n- `/var/log/syslog` - System events\n- `/var/log/apache2/` - Web server\n\n**Windows**\n- Security Event Log\n- Application Log\n- System Log\n\n### Analysis Commands\n\n```bash\n# Search for failed logins\ngrep 'Failed password' /var/log/auth.log\n\n# Count by IP\nawk '{print $11}' /var/log/auth.log | sort | uniq -c | sort -rn\n\n# Timeline analysis\ncat /var/log/auth.log | grep 'Jan 15'\n```\n\n### SIEM Tools\n\n- Splunk\n- ELK Stack\n- QRadar"},
+    {"id": 3, "title": "Digital Forensics Basics", "duration": "45 min", "content": "## Digital Forensics\n\n### Forensic Principles\n\n1. **Preserve evidence** - Maintain integrity\n2. **Document everything** - Chain of custody\n3. **Work on copies** - Never original\n4. **Use verified tools** - Validated software\n\n### Evidence Acquisition\n\n```bash\n# Create disk image\ndd if=/dev/sda of=image.dd bs=4M status=progress\n\n# Calculate hash\nsha256sum image.dd > image.hash\n\n# Verify integrity\nsha256sum -c image.hash\n```\n\n### Forensic Tools\n\n- **Autopsy** - GUI forensic platform\n- **Volatility** - Memory forensics\n- **FTK Imager** - Disk imaging"},
+    {"id": 4, "title": "Memory Forensics", "duration": "45 min", "content": "## Memory Analysis\n\n### Why Memory Forensics?\n\n- Running processes\n- Network connections\n- Encryption keys\n- Malware artifacts\n\n### Volatility Framework\n\n```bash\n# Get system info\nvol.py -f memory.dmp imageinfo\n\n# List processes\nvol.py -f memory.dmp --profile=Win7SP1x64 pslist\n\n# Network connections\nvol.py -f memory.dmp --profile=Win7SP1x64 netscan\n\n# Command history\nvol.py -f memory.dmp --profile=Win7SP1x64 cmdscan\n```\n\n### Memory Acquisition\n\n- FTK Imager\n- WinPMEM\n- LiME (Linux)"},
+    {"id": 5, "title": "Malware Analysis Intro", "duration": "40 min", "content": "## Basic Malware Analysis\n\n### Analysis Types\n\n**Static Analysis**\n- No execution\n- File properties\n- Strings extraction\n\n**Dynamic Analysis**\n- Controlled execution\n- Behavior monitoring\n- Network traffic\n\n### Static Analysis\n\n```bash\n# File type\nfile malware.exe\n\n# Strings\nstrings malware.exe | grep -i http\n\n# Hash\nsha256sum malware.exe\n```\n\n### Sandbox Analysis\n\n- Any.Run\n- VirusTotal\n- Cuckoo Sandbox\n\n### Indicators of Compromise (IOCs)\n\n- File hashes\n- IP addresses\n- Domain names\n- Registry keys"}
+  ],
+  "assessment": {
+    "passing_score": 80,
+    "max_attempts": 3,
+    "retry_delay_hours": 24,
+    "questions": [
+      {"id": 1, "question": "What is the first phase of NIST IR lifecycle?", "options": ["Detection", "Containment", "Preparation", "Recovery"], "correct": 2},
+      {"id": 2, "question": "Which Linux log contains authentication events?", "options": ["/var/log/syslog", "/var/log/auth.log", "/var/log/messages", "/var/log/boot.log"], "correct": 1},
+      {"id": 3, "question": "What tool is used for memory forensics?", "options": ["Autopsy", "Volatility", "Wireshark", "Nmap"], "correct": 1},
+      {"id": 4, "question": "Why should forensic analysis be done on copies?", "options": ["Faster analysis", "Preserve original evidence", "More storage", "Better tools"], "correct": 1},
+      {"id": 5, "question": "Which command creates a disk image?", "options": ["cp", "dd", "mv", "cat"], "correct": 1},
+      {"id": 6, "question": "What type of analysis executes malware?", "options": ["Static", "Dynamic", "Manual", "Automated"], "correct": 1},
+      {"id": 7, "question": "What is an IOC?", "options": ["Input Output Control", "Indicator of Compromise", "Internet of Computers", "Incident Operation Center"], "correct": 1},
+      {"id": 8, "question": "Which phase involves removing the threat?", "options": ["Containment", "Eradication", "Recovery", "Detection"], "correct": 1},
+      {"id": 9, "question": "What does SIEM stand for?", "options": ["Security Information Event Management", "System Integration Enterprise Module", "Secure Internet Endpoint Monitor", "Software Incident Emergency Management"], "correct": 0},
+      {"id": 10, "question": "Which tool is used for disk imaging?", "options": ["Volatility", "FTK Imager", "Metasploit", "Burp Suite"], "correct": 1}
+    ]
+  }
+}

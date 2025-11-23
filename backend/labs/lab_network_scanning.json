@@ -1,0 +1,50 @@
+{
+  "id": "lab_network_scanning",
+  "title": "Network Scanning Basics",
+  "description": "Learn to use nmap for network reconnaissance and service discovery. Essential skills for penetration testing.",
+  "difficulty": "Intermediate",
+  "duration": "20 min",
+  "category": "Network Security",
+  "semester_level": 2,
+  "scenario": "You are conducting a security assessment of a small network. Your task is to identify active hosts and discover running services to map the attack surface.",
+  "environment": "terminal",
+  "tasks": [
+    {
+      "step": 1,
+      "title": "Basic Host Discovery",
+      "instruction": "Start by performing a ping scan to discover live hosts on the network 192.168.1.0/24.",
+      "hint": "Use nmap with the -sn flag for ping scan",
+      "expected_command": "nmap -sn 192.168.1.0/24",
+      "output": "Starting Nmap 7.94 ( https://nmap.org )\nNmap scan report for 192.168.1.1\nHost is up (0.0023s latency).\nNmap scan report for 192.168.1.10\nHost is up (0.0045s latency).\nNmap scan report for 192.168.1.50\nHost is up (0.0031s latency).\nNmap done: 256 IP addresses (3 hosts up) scanned in 2.45 seconds",
+      "explanation": "The ping scan revealed 3 active hosts on the network. The target 192.168.1.50 looks interesting."
+    },
+    {
+      "step": 2,
+      "title": "Port Scanning",
+      "instruction": "Perform a TCP SYN scan on the target host 192.168.1.50 to identify open ports.",
+      "hint": "Use -sS for SYN scan (requires sudo in real scenarios)",
+      "expected_command": "nmap -sS 192.168.1.50",
+      "output": "Starting Nmap 7.94 ( https://nmap.org )\nNmap scan report for 192.168.1.50\nHost is up (0.0034s latency).\nNot shown: 996 closed ports\nPORT     STATE SERVICE\n22/tcp   open  ssh\n80/tcp   open  http\n443/tcp  open  https\n3306/tcp open  mysql\n\nNmap done: 1 IP address (1 host up) scanned in 1.23 seconds",
+      "explanation": "Found 4 open ports including SSH, HTTP, HTTPS, and MySQL - potential attack vectors."
+    },
+    {
+      "step": 3,
+      "title": "Service Version Detection",
+      "instruction": "Now detect the versions of services running on the open ports using version detection.",
+      "hint": "Use the -sV flag for service version detection",
+      "expected_command": "nmap -sV 192.168.1.50",
+      "output": "Starting Nmap 7.94 ( https://nmap.org )\nNmap scan report for 192.168.1.50\nHost is up (0.0034s latency).\nPORT     STATE SERVICE VERSION\n22/tcp   open  ssh     OpenSSH 7.6p1 Ubuntu 4\n80/tcp   open  http    Apache httpd 2.4.29\n443/tcp  open  ssl     Apache httpd 2.4.29\n3306/tcp open  mysql   MySQL 5.7.42\n\nService detection performed.\nNmap done: 1 IP address (1 host up) scanned in 6.78 seconds",
+      "explanation": "Service versions revealed! Note the older versions that may have known vulnerabilities."
+    },
+    {
+      "step": 4,
+      "title": "Aggressive Scan",
+      "instruction": "Perform an aggressive scan combining OS detection, version detection, script scanning, and traceroute.",
+      "hint": "Use the -A flag for aggressive scan",
+      "expected_command": "nmap -A 192.168.1.50",
+      "output": "Starting Nmap 7.94 ( https://nmap.org )\nNmap scan report for 192.168.1.50\nHost is up (0.0034s latency).\nPORT     STATE SERVICE VERSION\n22/tcp   open  ssh     OpenSSH 7.6p1 Ubuntu 4\n80/tcp   open  http    Apache httpd 2.4.29\n|_http-title: Welcome to ISC Cyber Range\n|_http-server-header: Apache/2.4.29 (Ubuntu)\n443/tcp  open  ssl     Apache httpd 2.4.29\n3306/tcp open  mysql   MySQL 5.7.42\n\nOS: Linux 4.15 - 5.6\nNetwork Distance: 1 hop\n\nFLAG{ISC_NETWORK_RECON_EXPERT_2024}\n\nNmap done: 1 IP address (1 host up) scanned in 12.34 seconds",
+      "explanation": "Comprehensive scan complete! You've successfully mapped the target's services, versions, and OS.",
+      "flag": "FLAG{ISC_NETWORK_RECON_EXPERT_2024}"
+    }
+  ]
+}

