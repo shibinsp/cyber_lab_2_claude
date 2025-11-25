@@ -18,7 +18,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         username=user.username,
         email=user.email,
         hashed_password=get_password_hash(user.password),
-        vm_password=user.password,  # Store plain password for VM access
+        vm_password=get_password_hash(user.password),  # Store hashed password for VM access
         semester=user.semester,
         department=user.department
     )

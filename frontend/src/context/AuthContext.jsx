@@ -6,27 +6,36 @@ const AuthContext = createContext(null);
 // Use the current host with HTTPS for production, HTTP for localhost
 // This function ensures evaluation happens in browser, not at build time
 const getApiUrl = () => {
-  // Check for environment variable first
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
-  
-  // Runtime evaluation in browser
+  // Runtime evaluation in browser - prioritize this over env variable
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
+    const port = window.location.port;
     
-    // If localhost, use direct backend port
+    // Helper function to check if hostname is an IP address
+    const isIPAddress = (host) => {
+      const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+      return ipRegex.test(host);
+    };
+    
+    // If localhost, use direct backend port or env variable
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://localhost:2026';
+      return import.meta.env.VITE_API_URL || 'http://localhost:2026';
     }
     
-    // For production domain, use same protocol as page (HTTPS)
+    // If accessing via IP address, use direct backend on port 2026
+    if (isIPAddress(hostname)) {
+      return `${protocol}//${hostname}:2026`;
+    }
+    
+    // For production domain (cyyberlabs.com), use same protocol and hostname
+    // The host Nginx will proxy API routes to the backend
+    // This prevents mixed content errors (HTTPS page -> HTTPS API)
     return `${protocol}//${hostname}`;
   }
   
-  // Fallback for SSR
-  return 'http://localhost:2026';
+  // Fallback for SSR or build time
+  return import.meta.env.VITE_API_URL || 'http://localhost:2026';
 };
 
 export const API_URL = getApiUrl();

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, LogIn, AlertCircle } from 'lucide-react';
+import { LogIn, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -38,9 +38,13 @@ export default function Login() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 200 }}
-            className="inline-flex items-center justify-center w-16 h-16 bg-emerald-500/20 rounded-full mb-4"
+            className="inline-flex items-center justify-center mb-4"
           >
-            <Shield className="w-8 h-8 text-emerald-400" />
+            <img
+              src="/logo.png"
+              alt="Cyyberlabs Logo"
+              className="w-20 h-20 object-contain"
+            />
           </motion.div>
           <h1 className="text-3xl font-bold text-white">Cyyberlabs</h1>
           <p className="text-gray-400 mt-2">Access your training environment</p>

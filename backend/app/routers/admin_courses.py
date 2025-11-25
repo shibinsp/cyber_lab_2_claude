@@ -56,20 +56,55 @@ def check_admin(current_user: User):
 
 # ========== Course Management Endpoints ==========
 
-@router.get("/", response_model=List[CourseResponse])
+@router.get("/")
 def get_all_courses(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    include_inactive: bool = False
+    include_inactive: bool = False,
+    page: int = 1,
+    per_page: int = 10,
+    search: Optional[str] = None
 ):
-    """Get all courses (admin only)"""
+    """Get all courses with pagination (admin only)"""
     check_admin(current_user)
-    
+
+    # Base query
     query = db.query(Course)
+
+    # Filter inactive
     if not include_inactive:
         query = query.filter(Course.is_active == True)
-    
-    return query.all()
+
+    # Search filter
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            (Course.title.ilike(search_term)) |
+            (Course.description.ilike(search_term)) |
+            (Course.category.ilike(search_term))
+        )
+
+    # Get total count
+    total = query.count()
+
+    # Apply pagination
+    offset = (page - 1) * per_page
+    courses = query.order_by(Course.id.desc()).offset(offset).limit(per_page).all()
+
+    # Calculate pagination metadata
+    total_pages = (total + per_page - 1) // per_page
+
+    return {
+        "courses": courses,
+        "pagination": {
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": total_pages,
+            "has_next": page < total_pages,
+            "has_prev": page > 1
+        }
+    }
 
 @router.post("/", response_model=CourseResponse, status_code=status.HTTP_201_CREATED)
 def create_course(

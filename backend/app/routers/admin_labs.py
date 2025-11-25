@@ -99,20 +99,65 @@ def check_admin(current_user: User):
 
 # ========== Lab Management Endpoints ==========
 
-@router.get("/", response_model=List[LabResponse])
+@router.get("/")
 def get_all_labs(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    include_inactive: bool = False
+    include_inactive: bool = False,
+    page: int = 1,
+    per_page: int = 10,
+    search: Optional[str] = None,
+    category: Optional[str] = None,
+    difficulty: Optional[str] = None
 ):
-    """Get all labs (admin only)"""
+    """Get all labs with pagination (admin only)"""
     check_admin(current_user)
-    
+
+    # Base query
     query = db.query(Lab)
+
+    # Filter inactive
     if not include_inactive:
         query = query.filter(Lab.is_active == True)
-    
-    return query.all()
+
+    # Search filter
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            (Lab.title.ilike(search_term)) |
+            (Lab.description.ilike(search_term)) |
+            (Lab.id.ilike(search_term))
+        )
+
+    # Category filter
+    if category:
+        query = query.filter(Lab.category == category)
+
+    # Difficulty filter
+    if difficulty:
+        query = query.filter(Lab.difficulty == difficulty)
+
+    # Get total count
+    total = query.count()
+
+    # Apply pagination
+    offset = (page - 1) * per_page
+    labs = query.order_by(Lab.id.desc()).offset(offset).limit(per_page).all()
+
+    # Calculate pagination metadata
+    total_pages = (total + per_page - 1) // per_page
+
+    return {
+        "labs": labs,
+        "pagination": {
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": total_pages,
+            "has_next": page < total_pages,
+            "has_prev": page > 1
+        }
+    }
 
 @router.post("/", response_model=LabResponse, status_code=status.HTTP_201_CREATED)
 def create_lab(

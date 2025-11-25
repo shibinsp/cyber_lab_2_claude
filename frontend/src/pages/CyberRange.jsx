@@ -338,7 +338,25 @@ export default function CyberRange() {
   console.log('>>> RENDERING: Lab interface');
 
   const currentTask = lab.tasks[currentStep];
-  const vmUrl = vmPort ? `http://${window.location.hostname}:${vmPort}/vnc.html?autoconnect=true&resize=scale` : null;
+
+  // Determine VM URL based on access method
+  let vmUrl = null;
+  if (vmPort) {
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+
+    // If accessing via IP address, connect directly to port
+    const isIPAddress = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
+
+    if (isIPAddress || hostname === 'localhost' || hostname === '127.0.0.1') {
+      // Direct port access for IP/localhost
+      vmUrl = `http://${hostname}:${vmPort}/vnc.html?autoconnect=true&resize=scale`;
+    } else {
+      // Use nginx proxy for domain access with proper websockify path
+      vmUrl = `${protocol}//${hostname}/vnc/${vmPort}/vnc.html?autoconnect=true&resize=scale&path=vnc/${vmPort}/websockify`;
+    }
+    console.log('>>> VM URL:', vmUrl);
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-900">

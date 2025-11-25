@@ -37,6 +37,26 @@ const AdminPanel = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // Pagination state for courses
+  const [coursePagination, setCoursePagination] = useState({
+    page: 1,
+    per_page: 10,
+    total: 0,
+    total_pages: 0
+  });
+  const [courseSearch, setCourseSearch] = useState('');
+
+  // Pagination state for labs
+  const [labPagination, setLabPagination] = useState({
+    page: 1,
+    per_page: 10,
+    total: 0,
+    total_pages: 0
+  });
+  const [labSearch, setLabSearch] = useState('');
+  const [labCategoryFilter, setLabCategoryFilter] = useState('');
+  const [labDifficultyFilter, setLabDifficultyFilter] = useState('');
+
   // Course form state
   const [courseForm, setCourseForm] = useState({
     title: '',
@@ -165,10 +185,28 @@ const AdminPanel = () => {
   };
 
   // New admin functions - Courses
-  const fetchCourses = async () => {
+  const fetchCourses = async (page = coursePagination.page, search = courseSearch) => {
     try {
-      const response = await axios.get(`${API_URL}/admin/courses/`, getAuthHeaders());
-      setCourses(response.data);
+      const params = new URLSearchParams({
+        page: page.toString(),
+        per_page: coursePagination.per_page.toString(),
+        include_inactive: 'true'
+      });
+
+      if (search) {
+        params.append('search', search);
+      }
+
+      const response = await axios.get(
+        `${API_URL}/admin/courses/?${params.toString()}`,
+        getAuthHeaders()
+      );
+
+      setCourses(response.data.courses || []);
+      setCoursePagination({
+        ...coursePagination,
+        ...response.data.pagination
+      });
       setError('');
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to fetch courses');
@@ -242,10 +280,34 @@ const AdminPanel = () => {
   };
 
   // New admin functions - Labs
-  const fetchLabs = async () => {
+  const fetchLabs = async (page = labPagination.page, search = labSearch) => {
     try {
-      const response = await axios.get(`${API_URL}/admin/labs/`, getAuthHeaders());
-      setLabs(response.data);
+      const params = new URLSearchParams({
+        page: page.toString(),
+        per_page: labPagination.per_page.toString(),
+        include_inactive: 'true'
+      });
+
+      if (search) {
+        params.append('search', search);
+      }
+      if (labCategoryFilter) {
+        params.append('category', labCategoryFilter);
+      }
+      if (labDifficultyFilter) {
+        params.append('difficulty', labDifficultyFilter);
+      }
+
+      const response = await axios.get(
+        `${API_URL}/admin/labs/?${params.toString()}`,
+        getAuthHeaders()
+      );
+
+      setLabs(response.data.labs || []);
+      setLabPagination({
+        ...labPagination,
+        ...response.data.pagination
+      });
       setError('');
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to fetch labs');
@@ -698,9 +760,36 @@ const AdminPanel = () => {
 
                 {/* List */}
                 <div className="lg:col-span-2">
-                  <h2 className="text-xl font-bold mb-4">Existing Courses ({courses.length})</h2>
+                  <div className="mb-4 flex justify-between items-center">
+                    <h2 className="text-xl font-bold">Existing Courses ({coursePagination.total})</h2>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        placeholder="Search courses..."
+                        value={courseSearch}
+                        onChange={(e) => {
+                          setCourseSearch(e.target.value);
+                          setCoursePagination({...coursePagination, page: 1});
+                        }}
+                        onKeyPress={(e) => e.key === 'Enter' && fetchCourses(1, e.target.value)}
+                        className="bg-gray-800 border border-gray-600 rounded px-3 py-2 text-sm"
+                      />
+                      <button
+                        onClick={() => fetchCourses(1, courseSearch)}
+                        className="bg-emerald-600 hover:bg-emerald-700 px-3 py-2 rounded text-sm"
+                      >
+                        Search
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="space-y-3">
-                    {courses.map(course => (
+                    {courses.length === 0 ? (
+                      <div className="bg-gray-700 p-8 rounded-lg text-center text-gray-400">
+                        <p>No courses found. Create your first course using the form.</p>
+                      </div>
+                    ) : (
+                      courses.map(course => (
                       <div key={course.id} className="bg-gray-700 p-4 rounded-lg">
                         <div className="flex justify-between items-start mb-2">
                           <h3 className="font-bold text-lg">{course.title}</h3>
@@ -731,8 +820,46 @@ const AdminPanel = () => {
                           </button>
                         </div>
                       </div>
-                    ))}
+                    ))
+                    )}
                   </div>
+
+                  {/* Pagination Controls */}
+                  {coursePagination.total_pages > 1 && (
+                    <div className="mt-6 flex justify-center items-center gap-2">
+                      <button
+                        onClick={() => fetchCourses(1)}
+                        disabled={coursePagination.page === 1}
+                        className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        ««
+                      </button>
+                      <button
+                        onClick={() => fetchCourses(coursePagination.page - 1)}
+                        disabled={!coursePagination.has_prev}
+                        className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        ‹ Previous
+                      </button>
+                      <span className="px-4 py-1 bg-gray-700 rounded">
+                        Page {coursePagination.page} of {coursePagination.total_pages}
+                      </span>
+                      <button
+                        onClick={() => fetchCourses(coursePagination.page + 1)}
+                        disabled={!coursePagination.has_next}
+                        className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Next ›
+                      </button>
+                      <button
+                        onClick={() => fetchCourses(coursePagination.total_pages)}
+                        disabled={coursePagination.page === coursePagination.total_pages}
+                        className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        »»
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -867,9 +994,52 @@ const AdminPanel = () => {
 
                 {/* List */}
                 <div className="lg:col-span-2">
-                  <h2 className="text-xl font-bold mb-4">Existing Labs ({labs.length})</h2>
+                  <div className="mb-4">
+                    <h2 className="text-xl font-bold mb-3">Existing Labs ({labPagination.total})</h2>
+
+                    {/* Search and Filters */}
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      <input
+                        type="text"
+                        placeholder="Search labs..."
+                        value={labSearch}
+                        onChange={(e) => {
+                          setLabSearch(e.target.value);
+                          setLabPagination({...labPagination, page: 1});
+                        }}
+                        onKeyDown={(e) => e.key === 'Enter' && fetchLabs(1, e.target.value)}
+                        className="flex-1 bg-gray-800 border border-gray-600 rounded px-3 py-2 text-sm"
+                      />
+                      <select
+                        value={labDifficultyFilter}
+                        onChange={(e) => {
+                          setLabDifficultyFilter(e.target.value);
+                          setLabPagination({...labPagination, page: 1});
+                          fetchLabs(1, labSearch);
+                        }}
+                        className="bg-gray-800 border border-gray-600 rounded px-3 py-2 text-sm"
+                      >
+                        <option value="">All Difficulties</option>
+                        <option>Basic</option>
+                        <option>Intermediate</option>
+                        <option>Advanced</option>
+                      </select>
+                      <button
+                        onClick={() => fetchLabs(1, labSearch)}
+                        className="bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded text-sm"
+                      >
+                        Search
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="space-y-3">
-                    {labs.map(lab => (
+                    {labs.length === 0 ? (
+                      <div className="bg-gray-700 p-8 rounded-lg text-center text-gray-400">
+                        <p>No labs found. Create your first lab using the form.</p>
+                      </div>
+                    ) : (
+                      labs.map(lab => (
                       <div key={lab.id} className="bg-gray-700 p-4 rounded-lg">
                         <div className="flex justify-between items-start mb-2">
                           <h3 className="font-bold text-lg">{lab.title}</h3>
@@ -908,8 +1078,46 @@ const AdminPanel = () => {
                           </button>
                         </div>
                       </div>
-                    ))}
+                    ))
+                    )}
                   </div>
+
+                  {/* Pagination Controls */}
+                  {labPagination.total_pages > 1 && (
+                    <div className="mt-6 flex justify-center items-center gap-2">
+                      <button
+                        onClick={() => fetchLabs(1)}
+                        disabled={labPagination.page === 1}
+                        className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        ««
+                      </button>
+                      <button
+                        onClick={() => fetchLabs(labPagination.page - 1)}
+                        disabled={!labPagination.has_prev}
+                        className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        ‹ Previous
+                      </button>
+                      <span className="px-4 py-1 bg-gray-700 rounded">
+                        Page {labPagination.page} of {labPagination.total_pages}
+                      </span>
+                      <button
+                        onClick={() => fetchLabs(labPagination.page + 1)}
+                        disabled={!labPagination.has_next}
+                        className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Next ›
+                      </button>
+                      <button
+                        onClick={() => fetchLabs(labPagination.total_pages)}
+                        disabled={labPagination.page === labPagination.total_pages}
+                        className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        »»
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

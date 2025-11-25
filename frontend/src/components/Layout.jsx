@@ -10,7 +10,6 @@ import {
   LogOut,
   ChevronDown,
   User,
-  Shield,
   Menu,
   X
 } from 'lucide-react';
@@ -46,9 +45,11 @@ export default function Layout({ children }) {
         {/* Logo */}
         <div className="p-4 border-b border-gray-700">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="Cyyberlabs Logo"
+              className="w-10 h-10 object-contain"
+            />
             {sidebarOpen && (
               <div>
                 <h1 className="text-lg font-bold text-white">Cyyberlabs</h1>
