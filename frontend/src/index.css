@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
 @layer base {
-  body {
+  html, body {
     @apply bg-slate-900 text-gray-100 m-0;
+    height: 100%;
+    min-height: 100vh;
+  }
+
+  #root {
+    min-height: 100vh;
+    height: 100%;
   }
 }
 

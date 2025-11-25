@@ -79,7 +79,7 @@ export default function Register() {
             <Shield className="w-8 h-8 text-emerald-400" />
           </motion.div>
           <h1 className="text-3xl font-bold text-white">Create Account</h1>
-          <p className="text-gray-400 mt-2">Join the ISC Cyber Range</p>
+          <p className="text-gray-400 mt-2">Join the Cyyberlabs Platform</p>
         </div>
 
         <div className="card">

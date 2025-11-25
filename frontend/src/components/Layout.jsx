@@ -51,8 +51,8 @@ export default function Layout({ children }) {
             </div>
             {sidebarOpen && (
               <div>
-                <h1 className="text-lg font-bold text-white">ISC</h1>
-                <p className="text-xs text-gray-400">Cyber Range</p>
+                <h1 className="text-lg font-bold text-white">Cyyberlabs</h1>
+                <p className="text-xs text-gray-400">Security Platform</p>
               </div>
             )}
           </div>

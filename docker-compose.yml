@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cyberlab_backend
+    restart: always
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM:-HS256}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+    volumes:
+      - ./backend/courses:/app/courses
+      - ./backend/labs:/app/labs
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: >
+      sh -c "
+        uvicorn app.main:app --host 0.0.0.0 --port 2026
+      "
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:2026/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+    container_name: cyberlab_frontend
+    restart: always
+    ports:
+      - "1969:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # VM Image (build only, not run as service)
+  cyberlab-vm:
+    build:
+      context: ./vm
+      dockerfile: Dockerfile
+    image: cyberlab-vm
+    profiles:
+      - build-only
+

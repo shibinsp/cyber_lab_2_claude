@@ -61,7 +61,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Shield className="w-8 h-8 text-emerald-400" />
-              <span className="text-xl font-bold text-white">ISC Cyber Range</span>
+              <span className="text-xl font-bold text-white">Cyyberlabs</span>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 text-gray-300">

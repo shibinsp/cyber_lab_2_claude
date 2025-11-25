@@ -167,28 +167,43 @@ def submit_assessment(submission: dict, db: Session = Depends(get_db), current_u
             # For fallback, give partial credit
             category_scores[category]["score"] += 5
 
-    # Save results
+    # Save results to database
     for category, scores in category_scores.items():
         percentage = (scores["score"] / scores["max_score"] * 100) if scores["max_score"] > 0 else 0
 
-        # Create a dummy quiz result (we're using dynamic generation)
-        result = UserQuizResult(
+        # Determine quiz_id based on category (map to existing quizzes if available)
+        quiz_id_to_use = 1  # Default
+        try:
+            static_quiz = db.query(Quiz).filter(Quiz.category == category).first()
+            if static_quiz:
+                quiz_id_to_use = static_quiz.id
+            else:
+                # Map to index-based quiz_id for known categories
+                if category in categories:
+                    quiz_id_to_use = categories.index(category) + 1
+        except Exception as e:
+            print(f"Error finding quiz for category {category}: {e}")
+            quiz_id_to_use = 1
+
+        # Create UserQuizResult entry
+        result_entry = UserQuizResult(
             user_id=current_user.id,
-            quiz_id=categories.index(category) + 1 if category in categories else 1,
+            quiz_id=quiz_id_to_use,
             score=scores["score"],
             max_score=scores["max_score"],
             percentage=percentage
         )
-        db.add(result)
+        db.add(result_entry)
 
         results.append({
-            "quiz_id": categories.index(category) + 1 if category in categories else 1,
+            "quiz_id": quiz_id_to_use,
             "category": category,
             "score": scores["score"],
             "max_score": scores["max_score"],
             "percentage": percentage
         })
 
+    # Mark quiz as completed for user
     current_user.quiz_completed = True
     db.commit()
 

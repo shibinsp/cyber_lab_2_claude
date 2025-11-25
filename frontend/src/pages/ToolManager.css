@@ -1,0 +1,164 @@
+.tool-manager {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.tool-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.tool-header h1 {
+  margin: 0;
+  color: #1a237e;
+}
+
+.lab-title {
+  margin: 5px 0 0 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.tool-content {
+  margin-top: 20px;
+}
+
+.quick-select {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.quick-select p {
+  margin: 0 0 10px 0;
+  color: #666;
+}
+
+.common-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tool-badge {
+  padding: 6px 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s;
+}
+
+.tool-badge:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+}
+
+.tools-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.tool-card {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s;
+}
+
+.tool-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.tool-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.tool-header-row h3 {
+  margin: 0;
+  color: #1a237e;
+  font-size: 18px;
+}
+
+.version-badge {
+  padding: 3px 10px;
+  background: #6c757d;
+  color: white;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.preinstalled-badge {
+  padding: 3px 10px;
+  background: #28a745;
+  color: white;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.tool-description {
+  color: #666;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+.install-command {
+  background: #1e1e1e;
+  padding: 12px;
+  border-radius: 5px;
+  margin: 10px 0;
+}
+
+.install-command strong {
+  color: #a0a0a0;
+  font-size: 12px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.install-command code {
+  color: #4ec9b0;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.tool-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.empty-state p {
+  margin: 10px 0;
+}
+
+.hint {
+  font-size: 14px;
+  color: #aaa;
+}
+

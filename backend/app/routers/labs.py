@@ -33,7 +33,16 @@ def get_all_labs(current_user: User = Depends(get_current_user), db: Session = D
 
 @router.get("/{lab_id}")
 def get_lab(lab_id: str, current_user: User = Depends(get_current_user)):
+    # Validate lab_id to prevent path traversal
+    if not lab_id.replace("_", "").replace("-", "").isalnum():
+        raise HTTPException(status_code=400, detail="Invalid lab ID")
+
     lab_path = os.path.join(LABS_DIR, f"{lab_id}.json")
+
+    # Ensure path is within LABS_DIR
+    if not os.path.realpath(lab_path).startswith(os.path.realpath(LABS_DIR)):
+        raise HTTPException(status_code=400, detail="Invalid lab path")
+
     if not os.path.exists(lab_path):
         raise HTTPException(status_code=404, detail="Lab not found")
     with open(lab_path) as f:

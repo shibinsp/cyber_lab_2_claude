@@ -1,0 +1,47 @@
+{
+  "base_os": "ubuntu-24.04",
+  "custom_os_name": "Cyyber Linux",
+  "vm_engine": "qemu_kvm",
+  "vm_format": "qcow2",
+
+  "labs": [
+    {
+      "lab_id": "lab_network_scanning",
+      "lab_name": "Network Scanning Basics",
+      "packages": ["nmap", "net-tools", "wireshark-common", "tcpdump", "netcat-openbsd", "dnsutils", "iputils-ping", "traceroute"],
+      "motd": "Lab 01: Network Scanning — Cyyber Linux",
+      "memory_mb": 2048,
+      "vcpus": 1,
+      "disk_gb": 20
+    },
+    {
+      "lab_id": "lab_web_recon",
+      "lab_name": "Web Reconnaissance",
+      "packages": ["curl", "wget", "nikto", "dirb", "whatweb", "wafw00f", "sublist3r", "python3-pip"],
+      "motd": "Lab 02: Web Reconnaissance — Cyyber Linux",
+      "memory_mb": 2048,
+      "vcpus": 1,
+      "disk_gb": 20
+    }
+  ],
+
+  "default_user": {
+    "username": "student",
+    "password": "labpass",
+    "timezone": "Asia/Kolkata",
+    "hostname_prefix": "cyyber-lab-"
+  },
+
+  "branding": {
+    "boot_logo": true,
+    "wallpaper": true,
+    "desktop_logo": true
+  },
+
+  "builder_settings": {
+    "memory": 2048,
+    "cpus": 2,
+    "disk_size_gb": 20,
+    "output_dir": "/var/lib/libvirt/images/cyyber-labs"
+  }
+}

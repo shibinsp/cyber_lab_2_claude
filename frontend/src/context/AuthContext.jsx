@@ -3,7 +3,33 @@ import axios from 'axios';
 
 const AuthContext = createContext(null);
 
-export const API_URL = 'http://localhost:8000';
+// Use the current host with HTTPS for production, HTTP for localhost
+// This function ensures evaluation happens in browser, not at build time
+const getApiUrl = () => {
+  // Check for environment variable first
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // Runtime evaluation in browser
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    
+    // If localhost, use direct backend port
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:2026';
+    }
+    
+    // For production domain, use same protocol as page (HTTPS)
+    return `${protocol}//${hostname}`;
+  }
+  
+  // Fallback for SSR
+  return 'http://localhost:2026';
+};
+
+export const API_URL = getApiUrl();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);

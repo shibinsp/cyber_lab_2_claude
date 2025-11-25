@@ -13,6 +13,19 @@ COURSES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__fil
 
 router = APIRouter(prefix="/courses", tags=["courses"])
 
+def validate_course_file_path(course_id: int) -> str:
+    """Validate course_id and return safe file path"""
+    if not isinstance(course_id, int) or course_id < 1:
+        raise HTTPException(status_code=400, detail="Invalid course ID")
+
+    course_file = os.path.join(COURSES_DIR, f"course_{course_id}.json")
+
+    # Ensure path is within COURSES_DIR
+    if not os.path.realpath(course_file).startswith(os.path.realpath(COURSES_DIR)):
+        raise HTTPException(status_code=400, detail="Invalid course path")
+
+    return course_file
+
 @router.get("/", response_model=List[CourseResponse])
 def get_courses(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     courses = db.query(Course).filter(Course.is_active == True).all()
@@ -190,7 +203,7 @@ def get_course_content(course_id: int, db: Session = Depends(get_db), current_us
         raise HTTPException(status_code=403, detail="Must be enrolled to access course content")
 
     # Load course content from JSON
-    course_file = os.path.join(COURSES_DIR, f"course_{course_id}.json")
+    course_file = validate_course_file_path(course_id)
     if not os.path.exists(course_file):
         raise HTTPException(status_code=404, detail="Course content not found")
 
@@ -276,7 +289,7 @@ def update_course_progress(course_id: int, module_id: int, db: Session = Depends
     progress.current_module = module_id
 
     # Calculate and update enrollment progress percentage
-    course_file = os.path.join(COURSES_DIR, f"course_{course_id}.json")
+    course_file = validate_course_file_path(course_id)
     if os.path.exists(course_file):
         with open(course_file, 'r') as f:
             content = json.load(f)
@@ -300,7 +313,7 @@ def update_course_progress(course_id: int, module_id: int, db: Session = Depends
 def get_course_assessment(course_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Get assessment questions - returns stored quiz or creates new one"""
     # Load course content
-    course_file = os.path.join(COURSES_DIR, f"course_{course_id}.json")
+    course_file = validate_course_file_path(course_id)
     if not os.path.exists(course_file):
         raise HTTPException(status_code=404, detail="Course content not found")
 
@@ -353,7 +366,7 @@ def get_course_assessment(course_id: int, db: Session = Depends(get_db), current
 @router.post("/{course_id}/assessment/regenerate")
 def regenerate_assessment(course_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Regenerate quiz questions - clears stored quiz and drafts"""
-    course_file = os.path.join(COURSES_DIR, f"course_{course_id}.json")
+    course_file = validate_course_file_path(course_id)
     if not os.path.exists(course_file):
         raise HTTPException(status_code=404, detail="Course content not found")
 
@@ -446,7 +459,7 @@ def submit_course_assessment(course_id: int, answers: dict, db: Session = Depend
                 progress.assessment_attempts = 0
 
     # Load course content with answers
-    course_file = os.path.join(COURSES_DIR, f"course_{course_id}.json")
+    course_file = validate_course_file_path(course_id)
     with open(course_file, 'r') as f:
         content = json.load(f)
 

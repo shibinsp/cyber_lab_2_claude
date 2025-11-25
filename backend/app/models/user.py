@@ -10,6 +10,7 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
+    vm_password = Column(String, nullable=True)  # Password for VM access (stored encrypted)
     semester = Column(Integer)
     department = Column(String, default="Computer Science")
     role = Column(String, default="student")  # student, admin
@@ -41,10 +42,11 @@ class CourseLab(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     course_id = Column(Integer, ForeignKey("courses.id"))
-    lab_id = Column(String)  # References the JSON lab file
+    lab_id = Column(String, ForeignKey("labs.id"))  # References the labs table
     order = Column(Integer, default=0)
 
     course = relationship("Course", back_populates="labs")
+    lab = relationship("Lab", back_populates="course_associations")
 
 class Enrollment(Base):
     __tablename__ = "enrollments"

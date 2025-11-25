@@ -1,8 +1,9 @@
 import httpx
 import json
+import os
 from typing import List, Dict
 
-MISTRAL_API_KEY = "CNYRMJHhgFHMJQQBqgKKNX6zjwXzFmQ0"
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
 MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions"
 
 async def generate_quiz_questions(category: str, num_questions: int = 5, difficulty: str = "intermediate") -> List[Dict]:

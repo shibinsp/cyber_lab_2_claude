@@ -42,7 +42,7 @@ export default function Login() {
           >
             <Shield className="w-8 h-8 text-emerald-400" />
           </motion.div>
-          <h1 className="text-3xl font-bold text-white">ISC Cyber Range</h1>
+          <h1 className="text-3xl font-bold text-white">Cyyberlabs</h1>
           <p className="text-gray-400 mt-2">Access your training environment</p>
         </div>
 

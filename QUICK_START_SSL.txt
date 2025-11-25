@@ -1,0 +1,70 @@
+═══════════════════════════════════════════════════════════════
+   🔒 QUICK START: Get SSL for cyyberlabs.com
+═══════════════════════════════════════════════════════════════
+
+📋 STEP 1: CONFIGURE DNS (at your domain registrar)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Login to where you bought cyyberlabs.com and add:
+
+   Record Type: A
+   Name: @
+   Value: 185.182.187.146
+   TTL: 300
+
+   Record Type: A  
+   Name: www
+   Value: 185.182.187.146
+   TTL: 300
+
+⏱️ Wait 15-30 minutes for DNS propagation
+
+
+📋 STEP 2: TEST DNS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+From your computer:
+
+   ping cyyberlabs.com
+
+Should show: 185.182.187.146
+
+If not, wait longer and try again.
+
+
+📋 STEP 3: GET SSL CERTIFICATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Once DNS works, run on your server:
+
+   cd /root/cyber_lab_2_claude
+   ./SSL_SETUP_INSTRUCTIONS.sh
+
+   OR
+
+   certbot --nginx -d cyyberlabs.com -d www.cyyberlabs.com
+
+
+📋 STEP 4: TEST YOUR SITE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Visit: https://cyyberlabs.com
+
+You should see:
+   ✅ Green padlock 🔒
+   ✅ "Cyyberlabs" branding
+   ✅ Login page loads
+   ✅ All features working
+
+
+═══════════════════════════════════════════════════════════════
+   ✅ THAT'S IT!
+═══════════════════════════════════════════════════════════════
+
+Everything else is already configured and ready to go!
+
+Your Cyyberlabs platform will be live at:
+   https://cyyberlabs.com
+
+VM Password: cyberlab
+
