@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Text, Float
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Text, Float, JSON
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from ..database import Base
@@ -99,6 +99,30 @@ class UserQuizResult(Base):
     completed_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="quiz_results")
+
+class AssessmentQuizAttempt(Base):
+    """Store assessment quiz attempts with questions and answers"""
+    __tablename__ = "assessment_quiz_attempts"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    attempt_number = Column(Integer, default=1)
+    
+    # Questions and answers for this attempt
+    questions = Column(JSON)  # JSON - stored quiz questions
+    answers = Column(JSON, nullable=True)  # JSON - user's answers
+    
+    # Scores
+    total_score = Column(Integer, default=0)
+    max_score = Column(Integer, default=0)
+    percentage = Column(Float, default=0.0)
+    
+    # Category scores (JSON)
+    category_scores = Column(JSON, nullable=True)  # JSON - scores per category
+    
+    # Timing
+    started_at = Column(DateTime(timezone=True), server_default=func.now())
+    completed_at = Column(DateTime(timezone=True), nullable=True)
 
 class AdminSettings(Base):
     __tablename__ = "admin_settings"

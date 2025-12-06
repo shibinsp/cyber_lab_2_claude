@@ -2,8 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 import asyncio
+import json
+from datetime import datetime
 from ..database import get_db
-from ..models.user import Quiz, QuizQuestion, UserQuizResult, User
+from ..models.user import Quiz, QuizQuestion, UserQuizResult, User, AssessmentQuizAttempt
 from ..schemas import QuizCreate, QuizResponse, QuizSubmission, QuizResultResponse, QuizQuestionResponse
 from ..utils.auth import get_current_user
 from ..utils.mistral import generate_quiz_questions, get_fallback_questions
@@ -40,7 +42,32 @@ def get_quizzes(db: Session = Depends(get_db), current_user: User = Depends(get_
 
 @router.get("/assessment")
 async def get_assessment_quiz(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """Get dynamically generated quiz questions using Mistral AI"""
+    """Get user's assessment quiz attempts"""
+    attempts = db.query(AssessmentQuizAttempt).filter(
+        AssessmentQuizAttempt.user_id == current_user.id
+    ).order_by(AssessmentQuizAttempt.started_at.desc()).all()
+    
+    return {
+        "attempts": [
+            {
+                "id": attempt.id,
+                "attempt_number": attempt.attempt_number,
+                "total_score": attempt.total_score,
+                "max_score": attempt.max_score,
+                "percentage": attempt.percentage,
+                "category_scores": attempt.category_scores,
+                "started_at": attempt.started_at,
+                "completed_at": attempt.completed_at,
+                "is_completed": attempt.completed_at is not None
+            }
+            for attempt in attempts
+        ],
+        "total_attempts": len(attempts)
+    }
+
+@router.post("/assessment/create")
+async def create_assessment_quiz(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Create a new assessment quiz attempt using Mistral AI"""
     categories = ["Network Security", "Web Security", "Cryptography", "Linux Fundamentals", "Penetration Testing", "Incident Response"]
 
     all_questions = []
@@ -84,7 +111,58 @@ async def get_assessment_quiz(db: Session = Depends(get_db), current_user: User 
                 })
                 question_id += 1
 
-    return {"questions": all_questions, "total": len(all_questions)}
+    # Get attempt number
+    existing_attempts = db.query(AssessmentQuizAttempt).filter(
+        AssessmentQuizAttempt.user_id == current_user.id
+    ).count()
+    attempt_number = existing_attempts + 1
+
+    # Create and save the attempt
+    attempt = AssessmentQuizAttempt(
+        user_id=current_user.id,
+        attempt_number=attempt_number,
+        questions=all_questions,
+        max_score=sum(q.get("points", 10) for q in all_questions)
+    )
+    db.add(attempt)
+    db.commit()
+    db.refresh(attempt)
+
+    return {
+        "attempt_id": attempt.id,
+        "questions": all_questions,
+        "total": len(all_questions),
+        "attempt_number": attempt_number
+    }
+
+@router.get("/assessment/{attempt_id}")
+async def get_assessment_attempt(
+    attempt_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get a specific assessment quiz attempt"""
+    attempt = db.query(AssessmentQuizAttempt).filter(
+        AssessmentQuizAttempt.id == attempt_id,
+        AssessmentQuizAttempt.user_id == current_user.id
+    ).first()
+    
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+    
+    return {
+        "id": attempt.id,
+        "attempt_number": attempt.attempt_number,
+        "questions": attempt.questions,
+        "answers": attempt.answers,
+        "total_score": attempt.total_score,
+        "max_score": attempt.max_score,
+        "percentage": attempt.percentage,
+        "category_scores": attempt.category_scores,
+        "started_at": attempt.started_at,
+        "completed_at": attempt.completed_at,
+        "is_completed": attempt.completed_at is not None
+    }
 
 @router.post("/submit")
 def submit_quiz(submission: QuizSubmission, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -131,48 +209,58 @@ def submit_quiz(submission: QuizSubmission, db: Session = Depends(get_db), curre
 @router.post("/submit-assessment")
 def submit_assessment(submission: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Submit answers for dynamically generated assessment"""
+    attempt_id = submission.get("attempt_id")
     answers = submission.get("answers", submission)
     questions_data = submission.get("questions", [])
 
+    if not attempt_id:
+        raise HTTPException(status_code=400, detail="attempt_id is required")
+
+    # Get the attempt
+    attempt = db.query(AssessmentQuizAttempt).filter(
+        AssessmentQuizAttempt.id == attempt_id,
+        AssessmentQuizAttempt.user_id == current_user.id
+    ).first()
+    
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+    
+    if attempt.completed_at:
+        raise HTTPException(status_code=400, detail="This attempt has already been completed")
+
+    # Use questions from attempt if not provided
+    if not questions_data:
+        questions_data = attempt.questions
+
     results = []
     category_scores = {}
-    categories = ["Network Security", "Web Security", "Cryptography", "Linux Fundamentals", "Penetration Testing", "Incident Response"]
+    total_score = 0
+    max_score = 0
 
-    # If questions_data provided, use it for scoring
-    if questions_data:
-        for q in questions_data:
-            category = q.get("category", "Unknown")
-            if category not in category_scores:
-                category_scores[category] = {"score": 0, "max_score": 0}
+    # Score the quiz
+    for q in questions_data:
+        category = q.get("category", "Unknown")
+        if category not in category_scores:
+            category_scores[category] = {"score": 0, "max_score": 0}
 
-            points = q.get("points", 10)
-            category_scores[category]["max_score"] += points
+        points = q.get("points", 10)
+        category_scores[category]["max_score"] += points
+        max_score += points
 
-            answer = answers.get(str(q["id"]))
-            if answer and answer.lower() == q.get("correct_answer", "").lower():
-                category_scores[category]["score"] += points
-    else:
-        # Fallback: assume 3 questions per category, 10 points each
-        for i, (qid, answer) in enumerate(answers.items()):
-            cat_idx = int(qid) // 4  # Rough category mapping
-            if cat_idx < len(categories):
-                category = categories[cat_idx]
-            else:
-                category = categories[0]
+        answer = answers.get(str(q["id"]))
+        if answer and answer.lower() == q.get("correct_answer", "").lower():
+            category_scores[category]["score"] += points
+            total_score += points
 
-            if category not in category_scores:
-                category_scores[category] = {"score": 0, "max_score": 0}
-
-            category_scores[category]["max_score"] += 10
-            # For fallback, give partial credit
-            category_scores[category]["score"] += 5
-
-    # Save results to database
+    # Calculate percentages
+    overall_percentage = (total_score / max_score * 100) if max_score > 0 else 0
+    
     for category, scores in category_scores.items():
         percentage = (scores["score"] / scores["max_score"] * 100) if scores["max_score"] > 0 else 0
 
         # Determine quiz_id based on category (map to existing quizzes if available)
         quiz_id_to_use = 1  # Default
+        categories = ["Network Security", "Web Security", "Cryptography", "Linux Fundamentals", "Penetration Testing", "Incident Response"]
         try:
             static_quiz = db.query(Quiz).filter(Quiz.category == category).first()
             if static_quiz:
@@ -185,7 +273,7 @@ def submit_assessment(submission: dict, db: Session = Depends(get_db), current_u
             print(f"Error finding quiz for category {category}: {e}")
             quiz_id_to_use = 1
 
-        # Create UserQuizResult entry
+        # Create UserQuizResult entry for ranking
         result_entry = UserQuizResult(
             user_id=current_user.id,
             quiz_id=quiz_id_to_use,
@@ -203,11 +291,26 @@ def submit_assessment(submission: dict, db: Session = Depends(get_db), current_u
             "percentage": percentage
         })
 
+    # Update the attempt
+    attempt.answers = answers
+    attempt.total_score = total_score
+    attempt.max_score = max_score
+    attempt.percentage = overall_percentage
+    attempt.category_scores = category_scores
+    attempt.completed_at = datetime.utcnow()
+    
     # Mark quiz as completed for user
     current_user.quiz_completed = True
     db.commit()
 
-    return {"results": results, "quiz_completed": True}
+    return {
+        "attempt_id": attempt.id,
+        "results": results,
+        "total_score": total_score,
+        "max_score": max_score,
+        "overall_percentage": overall_percentage,
+        "quiz_completed": True
+    }
 
 @router.get("/results", response_model=List[QuizResultResponse])
 def get_quiz_results(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

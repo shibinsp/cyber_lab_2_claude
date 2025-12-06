@@ -1,16 +1,21 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth, API_URL } from '../context/AuthContext';
 import Layout from '../components/Layout';
-import { User, Mail, Building, GraduationCap, Shield, BookOpen, FlaskConical, Award } from 'lucide-react';
+import { User, Mail, Building, GraduationCap, Shield, BookOpen, FlaskConical, Award, Plus, Clock, Trophy, CheckCircle, ClipboardCheck } from 'lucide-react';
 
 export default function Profile() {
   const { token, user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
+  const [quizAttempts, setQuizAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     fetchProfileStats();
+    fetchQuizAttempts();
   }, []);
 
   const fetchProfileStats = async () => {
@@ -37,6 +42,35 @@ export default function Profile() {
       console.error('Failed to fetch profile stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchQuizAttempts = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/quiz/assessment`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setQuizAttempts(res.data.attempts || []);
+    } catch (error) {
+      console.error('Failed to fetch quiz attempts:', error);
+    }
+  };
+
+  const createNewQuiz = async () => {
+    setCreating(true);
+    try {
+      await axios.post(
+        `${API_URL}/quiz/assessment/create`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Navigate to quiz page
+      navigate('/quiz');
+    } catch (error) {
+      console.error('Failed to create quiz:', error);
+      alert('Failed to create new quiz. Please try again.');
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -141,10 +175,100 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Quiz Results */}
+        {/* Quiz Attempts */}
+        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-white">Assessment Quiz Attempts</h3>
+            <button
+              onClick={createNewQuiz}
+              disabled={creating}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              {creating ? 'Creating...' : 'Create New Quiz'}
+            </button>
+          </div>
+
+          {quizAttempts.length === 0 ? (
+            <div className="text-center py-8">
+              <ClipboardCheck className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-400 mb-4">No quiz attempts yet</p>
+              <button
+                onClick={createNewQuiz}
+                disabled={creating}
+                className="px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50 transition-colors"
+              >
+                {creating ? 'Creating...' : 'Create Your First Quiz'}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {quizAttempts.map((attempt) => (
+                <div
+                  key={attempt.id}
+                  className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg hover:bg-gray-700/70 transition-colors cursor-pointer"
+                  onClick={() => navigate('/quiz')}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-lg ${
+                      attempt.is_completed 
+                        ? 'bg-emerald-500/20' 
+                        : 'bg-yellow-500/20'
+                    }`}>
+                      {attempt.is_completed ? (
+                        <CheckCircle className={`w-5 h-5 ${
+                          attempt.percentage >= 70 ? 'text-emerald-400' :
+                          attempt.percentage >= 50 ? 'text-yellow-400' : 'text-red-400'
+                        }`} />
+                      ) : (
+                        <Clock className="w-5 h-5 text-yellow-400" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">
+                        Attempt #{attempt.attempt_number}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        {new Date(attempt.started_at).toLocaleDateString()} at{' '}
+                        {new Date(attempt.started_at).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    {attempt.is_completed ? (
+                      <>
+                        <div className="flex items-center gap-2 justify-end mb-1">
+                          <Trophy className={`w-4 h-4 ${
+                            attempt.percentage >= 70 ? 'text-emerald-400' :
+                            attempt.percentage >= 50 ? 'text-yellow-400' : 'text-red-400'
+                          }`} />
+                          <span className={`text-lg font-bold ${
+                            attempt.percentage >= 70 ? 'text-emerald-400' :
+                            attempt.percentage >= 50 ? 'text-yellow-400' : 'text-red-400'
+                          }`}>
+                            {Math.round(attempt.percentage)}%
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-400">
+                          {attempt.total_score}/{attempt.max_score} points
+                        </p>
+                      </>
+                    ) : (
+                      <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-lg text-sm">
+                        In Progress
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Quiz Results (Category Breakdown) */}
         {stats?.quizResults && stats.quizResults.length > 0 && (
           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <h3 className="text-lg font-semibold text-white mb-4">Quiz Results</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">Category Scores</h3>
             <div className="space-y-3">
               {stats.quizResults.map((result, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">

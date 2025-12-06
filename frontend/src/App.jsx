@@ -17,6 +17,7 @@ import CourseLearning from './pages/CourseLearning';
 import CourseWorkflow from './pages/CourseWorkflow';
 import CreateWizard from './pages/CreateWizard';
 import Learn from './pages/Learn';
+import Leaderboard from './pages/Leaderboard';
 
 function PrivateRoute({ children }) {
   const { token, loading } = useAuth();
@@ -58,6 +59,7 @@ function AppRoutes() {
       <Route path="/learn" element={<Learn />} />
       <Route path="/courses" element={<PrivateRoute><Courses /></PrivateRoute>} />
       <Route path="/quiz" element={<PrivateRoute><Quiz /></PrivateRoute>} />
+      <Route path="/rank" element={<PrivateRoute><Leaderboard /></PrivateRoute>} />
       <Route path="/admin" element={<PrivateRoute><AdminPanel /></PrivateRoute>} />
       <Route path="/admin/create" element={<PrivateRoute><CreateWizard /></PrivateRoute>} />
       <Route path="/admin/labs/:labId/tools" element={<PrivateRoute><ToolManager /></PrivateRoute>} />

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, API_URL } from '../context/AuthContext';
+import axios from 'axios';
 import {
   LayoutDashboard,
   BookOpen,
@@ -11,15 +12,37 @@ import {
   ChevronDown,
   User,
   Menu,
-  X
+  X,
+  Trophy,
+  Award,
+  TrendingUp
 } from 'lucide-react';
 
 export default function Layout({ children }) {
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [labsExpanded, setLabsExpanded] = useState(true);
+  const [rankData, setRankData] = useState(null);
+
+  const fetchRank = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await axios.get(`${API_URL}/users/rank`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRankData(res.data);
+    } catch (error) {
+      console.error('Failed to fetch rank:', error);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (user && user.role === 'student' && token) {
+      fetchRank();
+    }
+  }, [user, token, fetchRank]);
 
   const handleLogout = () => {
     logout();
@@ -30,6 +53,7 @@ export default function Layout({ children }) {
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/courses', icon: BookOpen, label: 'Courses' },
     { path: '/quiz', icon: ClipboardCheck, label: 'Assessment Quiz' },
+    { path: '/rank', icon: TrendingUp, label: 'Rank' },
   ];
 
   const labItems = [
@@ -147,6 +171,57 @@ export default function Layout({ children }) {
               </div>
             )}
           </Link>
+          
+          {/* Rank Display */}
+          {user?.role === 'student' && rankData && (
+            <div className={`mb-3 p-3 rounded-lg bg-gradient-to-r ${
+              rankData.rank === 1 
+                ? 'from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30' 
+                : rankData.rank <= 3 
+                ? 'from-emerald-500/20 to-emerald-600/20 border border-emerald-500/30'
+                : 'from-gray-700/50 to-gray-600/50 border border-gray-600/30'
+            }`}>
+              {sidebarOpen ? (
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 rounded ${
+                    rankData.rank === 1 
+                      ? 'bg-yellow-500/20' 
+                      : rankData.rank <= 3 
+                      ? 'bg-emerald-500/20' 
+                      : 'bg-gray-600/20'
+                  }`}>
+                    {rankData.rank === 1 ? (
+                      <Trophy className="w-4 h-4 text-yellow-400" />
+                    ) : (
+                      <Award className={`w-4 h-4 ${
+                        rankData.rank <= 3 ? 'text-emerald-400' : 'text-gray-400'
+                      }`} />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-400">Rank</p>
+                    <p className="text-sm font-bold text-white">
+                      #{rankData.rank} of {rankData.total_students}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {rankData.total_score.toFixed(0)} pts
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-center">
+                  {rankData.rank === 1 ? (
+                    <Trophy className="w-5 h-5 text-yellow-400" />
+                  ) : (
+                    <Award className={`w-5 h-5 ${
+                      rankData.rank <= 3 ? 'text-emerald-400' : 'text-gray-400'
+                    }`} />
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 w-full px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
