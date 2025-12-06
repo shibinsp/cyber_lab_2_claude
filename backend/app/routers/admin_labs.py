@@ -6,7 +6,7 @@ from ..models import User, Lab, LabTool, LabFile, VMConfiguration, Course, Cours
 from ..utils.auth import get_current_user
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/admin/labs", tags=["admin-labs"])
+router = APIRouter(tags=["admin-labs"])
 
 # ========== Pydantic Schemas ==========
 
@@ -45,6 +45,7 @@ class LabCreate(BaseModel):
     tasks: Optional[list] = None
     objectives: Optional[list] = None
     tools_required: Optional[list] = None
+    terminal_type: str = "vm"  # "none", "simple", "vm"
     vm_enabled: bool = True
     vm_custom_image: Optional[str] = None
     vm_resources: Optional[dict] = None
@@ -61,6 +62,7 @@ class LabUpdate(BaseModel):
     tasks: Optional[list] = None
     objectives: Optional[list] = None
     tools_required: Optional[list] = None
+    terminal_type: Optional[str] = None  # "none", "simple", "vm"
     vm_enabled: Optional[bool] = None
     vm_custom_image: Optional[str] = None
     vm_resources: Optional[dict] = None
@@ -78,6 +80,7 @@ class LabResponse(BaseModel):
     tasks: Optional[list]
     objectives: Optional[list]
     tools_required: Optional[list]
+    terminal_type: Optional[str]
     vm_enabled: bool
     vm_custom_image: Optional[str]
     vm_resources: Optional[dict]
@@ -249,6 +252,48 @@ def delete_lab(
     db.commit()
     
     return {"message": f"Lab '{lab_id}' deleted successfully"}
+
+@router.post("/{lab_id}/deactivate")
+def deactivate_lab(
+    lab_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Deactivate lab (admin only) - soft delete"""
+    check_admin(current_user)
+    
+    lab = db.query(Lab).filter(Lab.id == lab_id).first()
+    if not lab:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Lab '{lab_id}' not found"
+        )
+    
+    lab.is_active = False
+    db.commit()
+    
+    return {"message": f"Lab '{lab_id}' deactivated successfully"}
+
+@router.post("/{lab_id}/activate")
+def activate_lab(
+    lab_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Activate lab (admin only)"""
+    check_admin(current_user)
+    
+    lab = db.query(Lab).filter(Lab.id == lab_id).first()
+    if not lab:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Lab '{lab_id}' not found"
+        )
+    
+    lab.is_active = True
+    db.commit()
+    
+    return {"message": f"Lab '{lab_id}' activated successfully"}
 
 # ========== Lab Tools Management ==========
 

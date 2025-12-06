@@ -43,7 +43,7 @@ export default function Login() {
             <img
               src="/logo.png"
               alt="Cyyberlabs Logo"
-              className="w-20 h-20 object-contain"
+              className="w-20 h-20 object-cover rounded-full border-2 border-emerald-500/30"
             />
           </motion.div>
           <h1 className="text-3xl font-bold text-white">Cyyberlabs</h1>

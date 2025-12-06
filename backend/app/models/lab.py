@@ -20,8 +20,9 @@ class Lab(Base):
     objectives = Column(JSON)  # Learning objectives
     tools_required = Column(JSON)  # List of tools needed
     
-    # VM Configuration
-    vm_enabled = Column(Boolean, default=True)
+    # Terminal/VM Configuration
+    terminal_type = Column(String, default="vm")  # "none", "simple", "vm" - none=no terminal, simple=basic terminal, vm=full VM
+    vm_enabled = Column(Boolean, default=True)  # Kept for backward compatibility
     vm_custom_image = Column(String, nullable=True)  # Custom Docker image if needed
     vm_resources = Column(JSON, nullable=True)  # {"cpu": "50%", "ram": "2g"}
     vm_preload_files = Column(JSON, nullable=True)  # Files to add to VM

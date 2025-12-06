@@ -29,20 +29,13 @@ export default function CyberRange() {
   const [vmError, setVmError] = useState(null);
 
   useEffect(() => {
-    console.log('=== CyberRange Component Mounted ===');
-    console.log('Lab ID:', labId);
-    console.log('API URL:', API_URL);
-    console.log('Token:', token ? 'Available' : 'Missing');
-
     if (!labId) {
-      console.error('ERROR: No labId provided');
       setError('Invalid lab URL: No lab ID found');
       setLoading(false);
       return;
     }
 
     if (!token) {
-      console.error('ERROR: No auth token');
       setError('Not authenticated');
       setLoading(false);
       return;
@@ -63,14 +56,9 @@ export default function CyberRange() {
       setLoading(true);
       setError(null);
 
-      console.log('>>> FETCHING LAB:', labId);
-
       const res = await axios.get(`${API_URL}/labs/${labId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
-      console.log('>>> Lab Response Status:', res.status);
-      console.log('>>> Lab Data:', res.data);
 
       // Validate lab data
       if (!res.data) {
@@ -81,7 +69,6 @@ export default function CyberRange() {
         throw new Error(`Lab has no tasks configured. Lab ID: ${labId}`);
       }
 
-      console.log('>>> ✓ Lab loaded successfully:', res.data.title, '(' + res.data.tasks.length + ' tasks)');
 
       // Set lab data
       setLab(res.data);
@@ -105,11 +92,9 @@ export default function CyberRange() {
       const res = await axios.get(`${API_URL}/vm/status/${labId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('VM Status Response:', res.data);  // DEBUG
       if (res.data.running) {
         setVmStatus('running');
         setVmPort(res.data.novnc_port);
-        console.log('Set VM port to:', res.data.novnc_port);  // DEBUG
       } else {
         setVmStatus('not_running');
         setVmPort(null);
@@ -126,14 +111,9 @@ export default function CyberRange() {
     setVmLoading(true);
     setVmError(null);
     try {
-      console.log('>>> Starting VM for lab:', labId);
       const res = await axios.post(`${API_URL}/vm/start/${labId}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
-      console.log('>>> VM Start Response:', res.data);
-      console.log('>>> Response status:', res.data.status);
-      console.log('>>> NoVNC port:', res.data.novnc_port);
 
       if (res.data.status === 'started' || res.data.status === 'already_running') {
         const port = res.data.novnc_port;
@@ -143,15 +123,10 @@ export default function CyberRange() {
         setVmPort(port);
         setVmStatus('running');
         setVmError(null);
-        console.log('>>> ✓ VM started successfully on port:', port);
-        console.log('>>> Will connect to:', `http://${window.location.hostname}:${port}/vnc.html`);
       } else {
         throw new Error(`Unexpected status: ${res.data.status}`);
       }
     } catch (err) {
-      console.error('>>> VM Start Error:', err);
-      console.error('>>> Error response:', err.response?.data);
-      console.error('>>> Error message:', err.message);
 
       const errorMsg = err.response?.data?.detail || err.message || 'Failed to start VM';
       setVmError(errorMsg);
@@ -259,7 +234,6 @@ export default function CyberRange() {
 
   // LOADING STATE
   if (loading) {
-    console.log('>>> RENDERING: Loading state');
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -273,7 +247,6 @@ export default function CyberRange() {
 
   // ERROR STATE
   if (error) {
-    console.log('>>> RENDERING: Error state -', error);
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center text-white max-w-md mx-auto p-6">
@@ -295,7 +268,6 @@ export default function CyberRange() {
 
   // NO LAB DATA STATE
   if (!lab) {
-    console.log('>>> RENDERING: No lab data (unexpected)');
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center text-white">
@@ -314,7 +286,6 @@ export default function CyberRange() {
 
   // INVALID LAB DATA STATE
   if (!lab.tasks || !Array.isArray(lab.tasks) || lab.tasks.length === 0) {
-    console.log('>>> RENDERING: Invalid lab data - no tasks');
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center text-white max-w-md mx-auto p-6">
@@ -335,8 +306,6 @@ export default function CyberRange() {
   }
 
   // SUCCESS - Render lab interface
-  console.log('>>> RENDERING: Lab interface');
-
   const currentTask = lab.tasks[currentStep];
 
   // Determine VM URL based on access method
@@ -355,7 +324,6 @@ export default function CyberRange() {
       // Use nginx proxy for domain access with proper websockify path
       vmUrl = `${protocol}//${hostname}/vnc/${vmPort}/vnc.html?autoconnect=true&resize=scale&path=vnc/${vmPort}/websockify`;
     }
-    console.log('>>> VM URL:', vmUrl);
   }
 
   return (

@@ -20,22 +20,22 @@ const getApiUrl = () => {
     
     // If localhost, use direct backend port or env variable
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return import.meta.env.VITE_API_URL || 'http://localhost:2026';
+      return (import.meta.env.VITE_API_URL || 'http://localhost:2026') + '/api';
     }
     
     // If accessing via IP address, use direct backend on port 2026
     if (isIPAddress(hostname)) {
-      return `${protocol}//${hostname}:2026`;
+      return `${protocol}//${hostname}:2026/api`;
     }
     
     // For production domain (cyyberlabs.com), use same protocol and hostname
     // The host Nginx will proxy API routes to the backend
     // This prevents mixed content errors (HTTPS page -> HTTPS API)
-    return `${protocol}//${hostname}`;
+    return `${protocol}//${hostname}/api`;
   }
   
   // Fallback for SSR or build time
-  return import.meta.env.VITE_API_URL || 'http://localhost:2026';
+  return (import.meta.env.VITE_API_URL || 'http://localhost:2026') + '/api';
 };
 
 export const API_URL = getApiUrl();

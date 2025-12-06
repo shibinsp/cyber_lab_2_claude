@@ -11,7 +11,7 @@ from ..utils.auth import get_current_user
 
 COURSES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "courses")
 
-router = APIRouter(prefix="/courses", tags=["courses"])
+router = APIRouter(tags=["courses"])
 
 def validate_course_file_path(course_id: int) -> str:
     """Validate course_id and return safe file path"""
@@ -25,6 +25,12 @@ def validate_course_file_path(course_id: int) -> str:
         raise HTTPException(status_code=400, detail="Invalid course path")
 
     return course_file
+
+@router.get("/public")
+def get_public_courses(db: Session = Depends(get_db)):
+    """Public endpoint to get all active courses without authentication"""
+    courses = db.query(Course).filter(Course.is_active == True).all()
+    return courses
 
 @router.get("/", response_model=List[CourseResponse])
 def get_courses(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -148,6 +154,55 @@ def get_course(course_id: int, db: Session = Depends(get_db)):
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     return course
+
+@router.get("/{course_id}/modules")
+def get_course_modules(course_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Get course modules and content for students"""
+    from ..models.course_content import CourseModule, CourseContent
+    
+    # Check if enrolled or admin
+    enrollment = db.query(Enrollment).filter(
+        Enrollment.user_id == current_user.id,
+        Enrollment.course_id == course_id
+    ).first()
+    
+    if not enrollment and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Must be enrolled to access course content")
+    
+    # Get modules with contents
+    modules = db.query(CourseModule).filter(
+        CourseModule.course_id == course_id,
+        CourseModule.is_active == True
+    ).order_by(CourseModule.order).all()
+    
+    result = []
+    for module in modules:
+        contents = db.query(CourseContent).filter(
+            CourseContent.module_id == module.id,
+            CourseContent.is_active == True
+        ).order_by(CourseContent.order).all()
+        
+        result.append({
+            "id": module.id,
+            "title": module.title,
+            "description": module.description,
+            "order": module.order,
+            "contents": [{
+                "id": c.id,
+                "content_type": c.content_type,
+                "title": c.title,
+                "description": c.description,
+                "file_url": c.file_url,
+                "file_name": c.file_name,
+                "text_content": c.text_content,
+                "linked_lab_id": c.linked_lab_id,
+                "order": c.order,
+                "is_required": c.is_required,
+                "estimated_duration": c.estimated_duration
+            } for c in contents]
+        })
+    
+    return {"modules": result}
 
 @router.get("/{course_id}/labs")
 def get_course_labs(course_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

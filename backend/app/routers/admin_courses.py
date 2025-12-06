@@ -6,7 +6,7 @@ from ..models import User, Course, CourseLab
 from ..utils.auth import get_current_user
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/admin/courses", tags=["admin-courses"])
+router = APIRouter(tags=["admin-courses"])
 
 # ========== Pydantic Schemas ==========
 

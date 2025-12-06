@@ -48,7 +48,7 @@ export default function Layout({ children }) {
             <img
               src="/logo.png"
               alt="Cyyberlabs Logo"
-              className="w-10 h-10 object-contain"
+              className="w-10 h-10 object-cover rounded-full"
             />
             {sidebarOpen && (
               <div>

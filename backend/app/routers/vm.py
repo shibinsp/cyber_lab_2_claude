@@ -10,7 +10,7 @@ from ..models import User
 from ..utils.auth import get_current_user
 from ..utils.vm_lifecycle import VMLifecycleManager
 
-router = APIRouter(prefix="/vm", tags=["vm"])
+router = APIRouter(tags=["vm"])
 
 # Docker client
 docker_client = docker.from_env()

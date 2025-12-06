@@ -8,9 +8,26 @@ from ..models import User, LabProgress
 from ..schemas import ProgressUpdate, ProgressResponse
 from ..utils.auth import get_current_user
 
-router = APIRouter(prefix="/labs", tags=["labs"])
+router = APIRouter(tags=["labs"])
 
 LABS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "labs")
+
+@router.get("/public")
+def get_public_labs(db: Session = Depends(get_db)):
+    """Public endpoint to get all labs without authentication (no progress data)"""
+    labs = []
+    for filename in os.listdir(LABS_DIR):
+        if filename.endswith(".json"):
+            with open(os.path.join(LABS_DIR, filename)) as f:
+                lab = json.load(f)
+                # Don't include progress for public endpoint
+                lab["progress"] = {
+                    "current_step": 0,
+                    "completed": False,
+                    "total_steps": len(lab.get("tasks", []))
+                }
+                labs.append(lab)
+    return labs
 
 @router.get("/")
 def get_all_labs(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):

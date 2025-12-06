@@ -5,7 +5,7 @@ from ..models.user import User, Course, Enrollment, UserQuizResult, Quiz
 from ..models.progress import LabProgress
 from ..utils.auth import get_current_user
 
-router = APIRouter(prefix="/dashboard", tags=["dashboard"])
+router = APIRouter(tags=["dashboard"])
 
 @router.get("/stats")
 def get_dashboard_stats(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

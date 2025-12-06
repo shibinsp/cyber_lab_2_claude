@@ -21,6 +21,7 @@ services:
     volumes:
       - ./backend/courses:/app/courses
       - ./backend/labs:/app/labs
+      - ./backend/uploads:/app/uploads
       - /var/run/docker.sock:/var/run/docker.sock
     command: >
       sh -c "

@@ -178,21 +178,23 @@ export default function Courses() {
                       <Check className="w-4 h-4" />
                       Enrolled
                     </span>
-                    <div className="flex gap-2">
+                    <div className="space-y-2">
                       <Link
                         to={`/course/${course.id}/learn`}
-                        className="flex-1 flex items-center justify-center gap-1 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors text-sm"
+                        className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-lg hover:from-emerald-600 hover:to-cyan-600 transition-all text-sm font-semibold shadow-lg"
                       >
                         <Play className="w-4 h-4" />
                         {getProgress(course.id) > 0 ? 'Continue' : 'Start Course'}
                       </Link>
-                      <Link
-                        to={`/course/${course.id}/labs`}
-                        className="flex-1 flex items-center justify-center gap-1 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors text-sm"
-                      >
-                        View Labs
-                        <ChevronRight className="w-4 h-4" />
-                      </Link>
+                      <div className="flex gap-2">
+                        <Link
+                          to={`/course/${course.id}/labs`}
+                          className="flex-1 flex items-center justify-center gap-1 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors text-sm"
+                        >
+                          View Labs
+                          <ChevronRight className="w-4 h-4" />
+                        </Link>
+                      </div>
                     </div>
                     {/* Progress Bar */}
                     <div>

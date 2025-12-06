@@ -8,7 +8,7 @@ from ..schemas import QuizCreate, QuizResponse, QuizSubmission, QuizResultRespon
 from ..utils.auth import get_current_user
 from ..utils.mistral import generate_quiz_questions, get_fallback_questions
 
-router = APIRouter(prefix="/quiz", tags=["quiz"])
+router = APIRouter(tags=["quiz"])
 
 @router.get("/", response_model=List[QuizResponse])
 def get_quizzes(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

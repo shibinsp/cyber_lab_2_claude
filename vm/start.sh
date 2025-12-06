@@ -41,14 +41,14 @@ Icon=utilities-terminal" > /home/$USER/Desktop/terminal.desktop
         <property name="workspace0" type="empty">
           <property name="color-style" type="int" value="0"/>
           <property name="image-style" type="int" value="5"/>
-          <property name="last-image" type="string" value="/usr/share/backgrounds/cyberlabs-logo.jpeg"/>
+          <property name="last-image" type="string" value="/usr/share/backgrounds/cyberlabs-wallpaper.png"/>
         </property>
       </property>
       <property name="monitor0" type="empty">
         <property name="workspace0" type="empty">
           <property name="color-style" type="int" value="0"/>
           <property name="image-style" type="int" value="5"/>
-          <property name="last-image" type="string" value="/usr/share/backgrounds/cyberlabs-logo.jpeg"/>
+          <property name="last-image" type="string" value="/usr/share/backgrounds/cyberlabs-wallpaper.png"/>
         </property>
       </property>
     </property>

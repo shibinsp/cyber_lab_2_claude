@@ -3,8 +3,9 @@ import asyncio
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from .database import engine, Base
-from .routers import auth, labs, users, courses, quiz, admin, dashboard, vm, admin_labs, admin_courses
+from .routers import auth, labs, users, courses, quiz, admin, dashboard, vm, admin_labs, admin_courses, admin_content, admin_assessments, assessments
 from .utils.vm_lifecycle import VMLifecycleManager
 
 # Configure logging
@@ -36,16 +37,24 @@ app.add_middleware(
     expose_headers=["*"],
 )
 
-app.include_router(auth.router)
-app.include_router(labs.router)
-app.include_router(users.router)
-app.include_router(courses.router)
-app.include_router(quiz.router)
-app.include_router(admin.router)
-app.include_router(dashboard.router)
-app.include_router(vm.router)
-app.include_router(admin_labs.router)
-app.include_router(admin_courses.router)
+app.include_router(auth.router, prefix="/api/auth")
+app.include_router(labs.router, prefix="/api/labs")
+app.include_router(users.router, prefix="/api/users")
+app.include_router(courses.router, prefix="/api/courses")
+app.include_router(quiz.router, prefix="/api/quiz")
+app.include_router(admin.router, prefix="/api/admin")
+app.include_router(dashboard.router, prefix="/api/dashboard")
+app.include_router(vm.router, prefix="/api/vm")
+app.include_router(admin_labs.router, prefix="/api/admin/labs")
+app.include_router(admin_courses.router, prefix="/api/admin/courses")
+app.include_router(admin_content.router, prefix="/api/admin/content")
+app.include_router(admin_assessments.router, prefix="/api/admin/assessments")
+app.include_router(assessments.router, prefix="/api/assessments")
+
+# Mount uploads directory for serving uploaded files
+UPLOAD_DIR = "/app/uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 @app.on_event("startup")
 async def startup_event():

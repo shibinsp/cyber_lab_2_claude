@@ -81,9 +81,9 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
-# Copy CyberLabs logo for wallpaper
-COPY logo.jpeg /usr/share/backgrounds/cyberlabs-logo.jpeg
-RUN chmod 644 /usr/share/backgrounds/cyberlabs-logo.jpeg
+# Copy CyberLabs wallpaper
+COPY wallpaper.png /usr/share/backgrounds/cyberlabs-wallpaper.png
+RUN chmod 644 /usr/share/backgrounds/cyberlabs-wallpaper.png
 
 # Create desktop shortcuts
 RUN mkdir -p /home/$USER/Desktop && \
@@ -92,7 +92,7 @@ RUN mkdir -p /home/$USER/Desktop && \
     chmod +x /home/$USER/Desktop/*.desktop && \
     chown -R $USER:$USER /home/$USER/Desktop
 
-# Set CyberLabs logo as desktop wallpaper for XFCE
+# Set CyberLabs wallpaper for XFCE desktop
 RUN mkdir -p /home/$USER/.config/xfce4/xfconf/xfce-perchannel-xml && \
     echo '<?xml version="1.0" encoding="UTF-8"?>\n\
 <channel name="xfce4-desktop" version="1.0">\n\
@@ -102,7 +102,7 @@ RUN mkdir -p /home/$USER/.config/xfce4/xfconf/xfce-perchannel-xml && \
         <property name="workspace0" type="empty">\n\
           <property name="color-style" type="int" value="0"/>\n\
           <property name="image-style" type="int" value="5"/>\n\
-          <property name="last-image" type="string" value="/usr/share/backgrounds/cyberlabs-logo.jpeg"/>\n\
+          <property name="last-image" type="string" value="/usr/share/backgrounds/cyberlabs-wallpaper.png"/>\n\
         </property>\n\
       </property>\n\
     </property>\n\

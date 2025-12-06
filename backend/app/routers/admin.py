@@ -7,7 +7,7 @@ from ..models.user import User, Course, Quiz, QuizQuestion, AdminSettings, Enrol
 from ..schemas import AdminSettingUpdate, UserAdminResponse, CourseCreate, QuizCreate
 from ..utils.auth import get_current_user
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(tags=["admin"])
 
 def require_admin(current_user: User = Depends(get_current_user)):
     if current_user.role != "admin":
