@@ -36,6 +36,35 @@ def get_user_rank(db: Session = Depends(get_db), current_user: User = Depends(ge
     - Lab completions (count)
     - Course completions (count of passed courses)
     """
+    from ..utils.redis_client import redis_client
+    
+    # Try to get from cache (5 minute TTL)
+    cache_key = f"leaderboard:all"
+    cached_result = redis_client.get_json(cache_key)
+    if cached_result:
+        # Find current user's rank in cached data
+        current_user_rank = None
+        current_user_score = None
+        for idx, user_score in enumerate(cached_result.get("all_students", []), start=1):
+            if user_score["user_id"] == current_user.id:
+                current_user_rank = idx
+                current_user_score = user_score
+                break
+        
+        if current_user_rank:
+            return {
+                "rank": current_user_rank,
+                "total_students": cached_result.get("total_students", 0),
+                "total_score": current_user_score.get("total_score", 0),
+                "assessment_score": current_user_score.get("assessment_score", 0),
+                "quiz_score": current_user_score.get("quiz_score", 0),
+                "completed_labs": current_user_score.get("completed_labs", 0),
+                "passed_courses": current_user_score.get("passed_courses", 0),
+                "quiz_attempts": current_user_score.get("quiz_attempts", 0),
+                "top_10": cached_result.get("all_students", [])[:10],
+                "all_students": cached_result.get("all_students", [])
+            }
+    
     # Get all students (exclude admins)
     all_students = db.query(User).filter(User.role == "student").all()
     
@@ -134,7 +163,7 @@ def get_user_rank(db: Session = Depends(get_db), current_user: User = Depends(ge
     
     total_students = len(user_scores)
     
-    return {
+    result = {
         "rank": current_user_rank,
         "total_students": total_students,
         "total_score": current_user_score["total_score"],
@@ -146,3 +175,12 @@ def get_user_rank(db: Session = Depends(get_db), current_user: User = Depends(ge
         "top_10": user_scores[:10],  # Return top 10 for quick display
         "all_students": user_scores  # Return all students for full leaderboard
     }
+    
+    # Cache the full leaderboard for 5 minutes
+    cache_key = f"leaderboard:all"
+    redis_client.set_json(cache_key, {
+        "total_students": total_students,
+        "all_students": user_scores
+    }, ttl=300)
+    
+    return result

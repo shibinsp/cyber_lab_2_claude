@@ -18,6 +18,9 @@ services:
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
       - MISTRAL_API_KEY=${MISTRAL_API_KEY}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - REDIS_HOST=${REDIS_HOST:-localhost}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_DB=${REDIS_DB:-0}
     volumes:
       - ./backend/courses:/app/courses
       - ./backend/labs:/app/labs
@@ -49,6 +52,21 @@ services:
       backend:
         condition: service_healthy
 
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: cyberlab_redis
+    restart: always
+    network_mode: host
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru --bind 0.0.0.0
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # VM Image (build only, not run as service)
   cyberlab-vm:
     build:
@@ -57,4 +75,7 @@ services:
     image: cyberlab-vm
     profiles:
       - build-only
+
+volumes:
+  redis_data:
 

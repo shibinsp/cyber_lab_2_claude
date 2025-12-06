@@ -3,12 +3,16 @@ Virtual Machine Management for Labs
 """
 import docker
 import random
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import User
 from ..utils.auth import get_current_user
 from ..utils.vm_lifecycle import VMLifecycleManager
+from ..utils.redis_client import redis_client
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["vm"])
 
@@ -18,31 +22,71 @@ docker_client = docker.from_env()
 # VM Lifecycle Manager
 vm_lifecycle = VMLifecycleManager()
 
-# Store active VMs (in production, use Redis or database)
-active_vms = {}
+# Redis key prefix for VM state
+VM_KEY_PREFIX = "vm:state:"
+VM_TTL = 7200  # 2 hours TTL for VM state
+
+def get_vm_key(user_id: int, lab_id: str) -> str:
+    """Generate Redis key for VM state"""
+    return f"{VM_KEY_PREFIX}{user_id}:{lab_id}"
+
+def get_vm_state(user_id: int, lab_id: str) -> dict:
+    """Get VM state from Redis"""
+    key = get_vm_key(user_id, lab_id)
+    state = redis_client.get_json(key)
+    return state if state else {}
+
+def set_vm_state(user_id: int, lab_id: str, state: dict) -> bool:
+    """Store VM state in Redis"""
+    key = get_vm_key(user_id, lab_id)
+    return redis_client.set_json(key, state, ttl=VM_TTL)
+
+def delete_vm_state(user_id: int, lab_id: str) -> bool:
+    """Delete VM state from Redis"""
+    key = get_vm_key(user_id, lab_id)
+    return redis_client.delete(key)
+
+def get_all_user_vms(user_id: int) -> list:
+    """Get all VMs for a user from Redis"""
+    pattern = f"{VM_KEY_PREFIX}{user_id}:*"
+    keys = []
+    if redis_client.is_connected():
+        try:
+            keys = redis_client.client.keys(pattern)
+        except:
+            pass
+    
+    vms = []
+    for key in keys:
+        lab_id = key.split(":")[-1]
+        state = redis_client.get_json(key)
+        if state:
+            state["lab_id"] = lab_id
+            vms.append(state)
+    return vms
 
 @router.post("/start/{lab_id}")
 def start_vm(lab_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Start a VM container for a specific lab"""
     try:
         # Check if user already has a VM running for this lab
-        vm_key = f"{current_user.id}_{lab_id}"
+        vm_state = get_vm_state(current_user.id, lab_id)
         
-        if vm_key in active_vms:
-            container_id = active_vms[vm_key]["container_id"]
+        if vm_state and vm_state.get("container_id"):
+            container_id = vm_state["container_id"]
             try:
                 container = docker_client.containers.get(container_id)
                 if container.status == "running":
                     return {
                         "status": "already_running",
                         "container_id": container_id,
-                        "vnc_port": active_vms[vm_key]["vnc_port"],
-                        "novnc_port": active_vms[vm_key]["novnc_port"],
+                        "vnc_port": vm_state.get("vnc_port"),
+                        "novnc_port": vm_state.get("novnc_port"),
                         "message": "VM is already running"
                     }
             except docker.errors.NotFound:
                 # Container was removed, clean up
-                del active_vms[vm_key]
+                delete_vm_state(current_user.id, lab_id)
         
         # Remove any existing container with the same name (cleanup)
         container_name = f"lab_{lab_id}_{current_user.id}"
@@ -96,14 +140,15 @@ def start_vm(lab_id: str, db: Session = Depends(get_db), current_user: User = De
         final_vnc_port = actual_vnc_port or vnc_port
         final_novnc_port = actual_novnc_port or novnc_port
         
-        # Store VM info
-        active_vms[vm_key] = {
+        # Store VM info in Redis
+        vm_state = {
             "container_id": container.id,
             "lab_id": lab_id,
             "user_id": current_user.id,
             "vnc_port": final_vnc_port,
             "novnc_port": final_novnc_port
         }
+        set_vm_state(current_user.id, lab_id, vm_state)
         
         return {
             "status": "started",
@@ -124,24 +169,24 @@ def start_vm(lab_id: str, db: Session = Depends(get_db), current_user: User = De
 def stop_vm(lab_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Stop a running VM container"""
     try:
-        vm_key = f"{current_user.id}_{lab_id}"
+        vm_state = get_vm_state(current_user.id, lab_id)
         
-        if vm_key not in active_vms:
+        if not vm_state or not vm_state.get("container_id"):
             return {"status": "not_running", "message": "No VM running for this lab"}
         
-        container_id = active_vms[vm_key]["container_id"]
+        container_id = vm_state["container_id"]
         
         try:
             container = docker_client.containers.get(container_id)
             container.stop(timeout=5)
-            del active_vms[vm_key]
+            delete_vm_state(current_user.id, lab_id)
             
             return {
                 "status": "stopped",
                 "message": "VM stopped successfully"
             }
         except docker.errors.NotFound:
-            del active_vms[vm_key]
+            delete_vm_state(current_user.id, lab_id)
             return {"status": "not_found", "message": "Container not found, cleaned up"}
             
     except Exception as e:
@@ -150,15 +195,15 @@ def stop_vm(lab_id: str, db: Session = Depends(get_db), current_user: User = Dep
 @router.get("/status/{lab_id}")
 def get_vm_status(lab_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Get status of VM for a specific lab"""
-    vm_key = f"{current_user.id}_{lab_id}"
+    vm_state = get_vm_state(current_user.id, lab_id)
     
-    if vm_key not in active_vms:
+    if not vm_state or not vm_state.get("container_id"):
         return {
             "status": "not_running",
             "running": False
         }
     
-    container_id = active_vms[vm_key]["container_id"]
+    container_id = vm_state["container_id"]
     
     try:
         container = docker_client.containers.get(container_id)
@@ -175,14 +220,14 @@ def get_vm_status(lab_id: str, db: Session = Depends(get_db), current_user: User
                 actual_novnc_port = int(container.ports['6080/tcp'][0]['HostPort'])
         
         # Use actual ports or fallback to stored
-        final_vnc_port = actual_vnc_port or active_vms[vm_key]["vnc_port"]
-        final_novnc_port = actual_novnc_port or active_vms[vm_key]["novnc_port"]
+        final_vnc_port = actual_vnc_port or vm_state.get("vnc_port")
+        final_novnc_port = actual_novnc_port or vm_state.get("novnc_port")
         
         # Update stored ports if they changed
-        if actual_vnc_port:
-            active_vms[vm_key]["vnc_port"] = actual_vnc_port
-        if actual_novnc_port:
-            active_vms[vm_key]["novnc_port"] = actual_novnc_port
+        if actual_vnc_port or actual_novnc_port:
+            vm_state["vnc_port"] = final_vnc_port
+            vm_state["novnc_port"] = final_novnc_port
+            set_vm_state(current_user.id, lab_id, vm_state)
         
         return {
             "status": container.status,
@@ -192,7 +237,7 @@ def get_vm_status(lab_id: str, db: Session = Depends(get_db), current_user: User
             "novnc_port": final_novnc_port
         }
     except docker.errors.NotFound:
-        del active_vms[vm_key]
+        delete_vm_state(current_user.id, lab_id)
         return {
             "status": "not_found",
             "running": False
@@ -202,20 +247,21 @@ def get_vm_status(lab_id: str, db: Session = Depends(get_db), current_user: User
 def list_user_vms(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """List all running VMs for the current user"""
     user_vms = []
+    vms = get_all_user_vms(current_user.id)
     
-    for vm_key, vm_info in list(active_vms.items()):
-        if vm_info["user_id"] == current_user.id:
+    for vm_info in vms:
+        if vm_info.get("user_id") == current_user.id:
             try:
                 container = docker_client.containers.get(vm_info["container_id"])
                 user_vms.append({
                     "lab_id": vm_info["lab_id"],
                     "container_id": vm_info["container_id"][:12],
                     "status": container.status,
-                    "vnc_port": vm_info["vnc_port"],
-                    "novnc_port": vm_info["novnc_port"]
+                    "vnc_port": vm_info.get("vnc_port"),
+                    "novnc_port": vm_info.get("novnc_port")
                 })
             except docker.errors.NotFound:
-                del active_vms[vm_key]
+                delete_vm_state(current_user.id, vm_info["lab_id"])
     
     return {"vms": user_vms}
 
@@ -226,17 +272,29 @@ def cleanup_stopped_vms(db: Session = Depends(get_db), current_user: User = Depe
         raise HTTPException(status_code=403, detail="Admin access required")
     
     cleaned = 0
-    for vm_key in list(active_vms.keys()):
-        container_id = active_vms[vm_key]["container_id"]
+    if redis_client.is_connected():
         try:
-            container = docker_client.containers.get(container_id)
-            if container.status != "running":
-                container.remove(force=True)
-                del active_vms[vm_key]
-                cleaned += 1
-        except docker.errors.NotFound:
-            del active_vms[vm_key]
-            cleaned += 1
+            pattern = f"{VM_KEY_PREFIX}*"
+            keys = redis_client.client.keys(pattern)
+            
+            for key in keys:
+                vm_state = redis_client.get_json(key)
+                if vm_state and vm_state.get("container_id"):
+                    container_id = vm_state["container_id"]
+                    user_id = vm_state.get("user_id")
+                    lab_id = vm_state.get("lab_id")
+                    
+                    try:
+                        container = docker_client.containers.get(container_id)
+                        if container.status != "running":
+                            container.remove(force=True)
+                            delete_vm_state(user_id, lab_id)
+                            cleaned += 1
+                    except docker.errors.NotFound:
+                        delete_vm_state(user_id, lab_id)
+                        cleaned += 1
+        except Exception as e:
+            logger.error(f"Cleanup error: {e}")
     
     return {"cleaned": cleaned, "message": f"Cleaned up {cleaned} VM(s)"}
 
@@ -250,12 +308,12 @@ def pause_vm(lab_id: str, db: Session = Depends(get_db), current_user: User = De
     Pause VM to save resources
     Paused VMs use 0% CPU (frozen state)
     """
-    vm_key = f"{current_user.id}_{lab_id}"
+    vm_state = get_vm_state(current_user.id, lab_id)
 
-    if vm_key not in active_vms:
+    if not vm_state or not vm_state.get("container_id"):
         raise HTTPException(status_code=404, detail="No VM running for this lab")
 
-    container_id = active_vms[vm_key]["container_id"]
+    container_id = vm_state["container_id"]
 
     result = vm_lifecycle.pause_vm(container_id)
 
@@ -273,12 +331,12 @@ def pause_vm(lab_id: str, db: Session = Depends(get_db), current_user: User = De
 @router.post("/resume/{lab_id}")
 def resume_vm(lab_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Resume a paused VM"""
-    vm_key = f"{current_user.id}_{lab_id}"
+    vm_state = get_vm_state(current_user.id, lab_id)
 
-    if vm_key not in active_vms:
+    if not vm_state or not vm_state.get("container_id"):
         raise HTTPException(status_code=404, detail="No VM found for this lab")
 
-    container_id = active_vms[vm_key]["container_id"]
+    container_id = vm_state["container_id"]
 
     result = vm_lifecycle.start_vm(container_id)
 
@@ -292,20 +350,20 @@ def resume_vm(lab_id: str, db: Session = Depends(get_db), current_user: User = D
         "status": "running",
         "lab_id": lab_id,
         "container_id": container_id[:12],
-        "vnc_port": active_vms[vm_key]["vnc_port"],
-        "novnc_port": active_vms[vm_key]["novnc_port"],
+        "vnc_port": vm_state.get("vnc_port"),
+        "novnc_port": vm_state.get("novnc_port"),
         "message": "VM resumed successfully"
     }
 
 @router.get("/stats/{lab_id}")
 def get_vm_stats(lab_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Get VM resource usage statistics"""
-    vm_key = f"{current_user.id}_{lab_id}"
+    vm_state = get_vm_state(current_user.id, lab_id)
 
-    if vm_key not in active_vms:
+    if not vm_state or not vm_state.get("container_id"):
         return {"error": "No VM found"}
 
-    container_id = active_vms[vm_key]["container_id"]
+    container_id = vm_state["container_id"]
 
     stats = vm_lifecycle.get_vm_stats(container_id)
 
@@ -317,12 +375,12 @@ def get_vm_stats(lab_id: str, db: Session = Depends(get_db), current_user: User 
 @router.post("/activity/{lab_id}")
 def record_vm_activity(lab_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Record user activity (called by frontend on VNC interaction)"""
-    vm_key = f"{current_user.id}_{lab_id}"
+    vm_state = get_vm_state(current_user.id, lab_id)
 
-    if vm_key not in active_vms:
+    if not vm_state or not vm_state.get("container_id"):
         return {"status": "not_found"}
 
-    container_id = active_vms[vm_key]["container_id"]
+    container_id = vm_state["container_id"]
     vm_lifecycle.record_activity(container_id)
 
     return {"status": "activity_recorded"}
